@@ -1,0 +1,85 @@
+/* ============================================================
+   Remedy Toolbox — Mobile layer (SHARED, single source)
+   Loaded LAST in every page's <head>:
+       <link rel="stylesheet" href="shared/mobile.css?v=1">
+       (SubTools use ../shared/mobile.css?v=1)
+
+   Refines the toolbox for phones/tablets. It layers on top of
+   each page's own responsive rules, so it uses !important on
+   the layout-critical bits to win regardless of include order.
+   The shared header / tab-nav / card / container classes are
+   identical on every page, so fixing them here fixes them
+   everywhere. Tool-specific input grids are stacked in each
+   tool's own <style> (this file provides the safe baseline).
+   ============================================================ */
+
+/* ---- Global safety: nothing may overflow the viewport ---- */
+*, *::before, *::after { min-width: 0; }               /* let fl/ grid children shrink */
+html, body { max-width: 100%; overflow-x: hidden; }
+img, svg, canvas, video, iframe { max-width: 100%; height: auto; }
+
+/* ======================= TABLET & DOWN (<=768px) ======================= */
+@media (max-width: 768px) {
+  /* Tap-friendly controls; 16px inputs stop iOS auto-zoom on focus */
+  input, select, textarea { font-size: 16px !important; }
+  button, .btn, .tab, .pencil-btn, summary,
+  input[type="button"], input[type="submit"] { min-height: 44px; }
+
+  /* Header: tighter, smaller logo/title */
+  .header { padding: 10px 14px !important; gap: 10px !important; }
+  .header img { height: 40px !important; }
+  .header h1 { font-size: 17px !important; }
+  .header .eyebrow { font-size: 9.5px !important; letter-spacing: 1.2px !important; }
+
+  /* Tab nav: scroll sideways instead of wrapping/overflowing the screen */
+  .tabnav {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tabnav::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto !important; padding: 12px 14px !important;
+         letter-spacing: 1px !important; white-space: nowrap; }
+}
+
+/* ======================= MAIN LAYOUT ======================= */
+/* The two-column shell collapses to one column earlier + full width. */
+@media (max-width: 900px) {
+  .container { grid-template-columns: 1fr !important; max-width: 100% !important; }
+}
+@media (max-width: 640px) {
+  .container { padding: 0 12px !important; margin: 12px auto !important; gap: 12px !important; }
+  .card-head { padding: 12px 14px !important; }
+  /* Wide tables/rows scroll inside their holder instead of blowing out the page.
+     Covers the common content holders + the table-wrapper classes tools use. */
+  .card-body, .ref-body, .ref-tablewrap, .loop-table-wrap, .table-wrap,
+  .results, .result, .out, .output, .breakdown {
+    padding: 12px 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .card-body { padding: 12px 14px !important; }
+  table { font-size: 12px; }
+  th, td { padding: 6px 8px !important; }
+}
+
+/* ======================= PHONE (<=560px) ======================= */
+@media (max-width: 560px) {
+  .header { flex-wrap: wrap !important; }
+  .header-divider { display: none !important; }
+  /* greeting drops to its own line so the logo/title never get squeezed */
+  .greeting { order: 3; width: 100%; font-size: 12px !important; margin-top: 2px; }
+
+  /* Feedback button + any modal/tour/dialog fit the screen */
+  #remedy-fb-fab { bottom: 14px !important; right: 14px !important; }
+  #remedy-fb-modal .fb-card, .modal, .tour-card, .splash-card, .modal-card {
+    width: 92vw !important; max-width: 92vw !important;
+  }
+}
+
+/* Tiny phones: reclaim the greeting's space entirely */
+@media (max-width: 400px) {
+  .greeting { display: none !important; }
+  .header h1 { font-size: 16px !important; }
+}
