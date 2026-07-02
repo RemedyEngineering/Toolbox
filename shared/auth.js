@@ -169,7 +169,7 @@
       localSyncedKeys().forEach(function (kk) { union[kk] = 1; });
       for (k in cloud) { if (cloud.hasOwnProperty(k)) union[k] = 1; }
       state.applyingRemote = true;
-      var changed = [];
+      var changedLocal = [], toPush = {};
       for (k in union) {
         if (!union.hasOwnProperty(k)) continue;
         var loc = localStorage.getItem(k), cl = (cloud[k] != null ? String(cloud[k]) : null), win;
@@ -182,11 +182,19 @@
         } else {                                           // settings -> cloud wins
           win = (cl != null ? cl : loc);
         }
-        if (win != null && win !== loc) { rawSet(k, win); changed.push(k); }
+        if (win == null) continue;
+        if (win !== loc) { rawSet(k, win); changedLocal.push(k); }               // cloud -> local
+        if (win !== cl && !(k === AVATAR_KEY && win.length > AVATAR_MAX)) {      // local -> cloud
+          toPush[k] = win;
+        }
       }
       state.applyingRemote = false;
-      changed.forEach(function (kk) { fireStorage(kk, localStorage.getItem(kk)); });
-      return seedCloud();                                  // write merged union back to cloud
+      changedLocal.forEach(function (kk) { fireStorage(kk, localStorage.getItem(kk)); });
+      // Only write back when we genuinely have something new for the cloud
+      // (e.g. an achievement earned on this device) — not on every page load.
+      if (Object.keys(toPush).length) {
+        return ref.set({ keys: toPush, email: state.user.email, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      }
     });
   }
   function schedulePush() {
@@ -240,6 +248,18 @@
     currentEmail: function () { return state.user ? state.user.email : null; }
   };
 
+  // Skip the background pull if we already synced very recently this session,
+  // so rapid navigation between tools doesn't hammer Firestore.
+  function shouldPull() {
+    try {
+      var last = parseFloat(sessionStorage.getItem('remedy.auth.lastPull') || '0');
+      var now = Date.now();
+      if (now - last < 15000) return false;
+      sessionStorage.setItem('remedy.auth.lastPull', String(now));
+      return true;
+    } catch (e) { return true; }
+  }
+
   function onUser(user) {
     if (!user) { showSignIn(); return; }
     var email = (user.email || '').toLowerCase();
@@ -250,13 +270,11 @@
     }
     state.user = user;
     state.db = firebase.firestore();
-    showLoading('Syncing your profile&hellip;');
-    pull().then(function () {
-      removeOverlay(); reveal();
-    }).catch(function () {
-      // Sync failed but the user is authenticated — let them in on local data.
-      removeOverlay(); reveal();
-    });
+    // Show the page IMMEDIATELY from the locally-cached data — navigating between
+    // tools should never wait on the network. Then sync quietly in the background;
+    // any genuinely newer data from another device is applied live via storage events.
+    removeOverlay(); reveal();
+    if (shouldPull()) { pull().catch(function () {}); }
   }
 
   function start() {
