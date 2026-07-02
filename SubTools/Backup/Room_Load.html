@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Room Load Estimator — Remedy Engineering</title>
+<style>
+  :root {
+    --charcoal:#404040; --orange:#F06020; --orange-d:#C04000;
+    --amber:#F0A010; --lime:#A4C748; --lime-d:#7FA630;
+    --pale-or:#FBE5D6; --pale-lime:#EAF1D7; --cream:#FFF4E0;
+    --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F7F7F7; --red:#B00000;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body { font-family: Calibri,"Segoe UI",Tahoma,sans-serif; color: var(--charcoal); background: var(--bg); font-size: 14px; }
+  .header { background:#fff; display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); gap:16px; }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .header img { height: 52px; }
+  .header-divider { width:1px; height:42px; background:var(--border); }
+  .header-titles { line-height:1.1; }
+  .header .eyebrow { font-size:11px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color:var(--orange-d); margin-bottom:3px; }
+  .header h1 { margin:0; font-size:24px; font-weight:bold; color:var(--charcoal); }
+  .back-link { font-size:12px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--orange-d); border:2px solid var(--orange); padding:6px 12px; white-space:nowrap; transition:all .1s; }
+  .back-link:hover { background: var(--orange); color:#fff; }
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip { background: var(--charcoal); color:#fff; font-style:italic; font-weight:bold; font-size:13px; padding:6px 24px; }
+  .container { max-width: 1280px; margin: 18px auto; padding: 0 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+  .card { background:#fff; border:1px solid var(--border); }
+  .card.full { grid-column: 1 / -1; }
+  .card-head { background: var(--charcoal); color:#fff; font-weight:bold; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:9px 14px; border-bottom: 3px solid var(--orange); display:flex; justify-content:space-between; align-items:center; }
+  .card-head .tag { font-size:10px; color: var(--lime); letter-spacing:1px; font-weight:bold; }
+  .card-body { padding: 14px 16px 16px; }
+  .control-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .control-row label { font-size:11px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color: var(--grey); min-width: 165px; }
+  .control-row .unit { font-size:11px; font-weight:bold; color: var(--grey); min-width:44px; }
+  select, input[type="number"] { flex:1; font-family:inherit; font-size:14px; font-weight:bold; color: var(--orange-d); background: var(--cream); border:1px solid var(--border); padding: 7px 9px; outline: none; }
+  select:focus, input[type="number"]:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(240,96,32,0.15); }
+  .sub-head { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color: var(--charcoal); font-weight:bold; padding: 6px 0 4px; border-bottom: 1px solid var(--border); margin: 10px 0 8px; }
+  .results-grid { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .res-cell { background: var(--cream); border-left: 4px solid var(--orange); padding: 12px 14px; }
+  .res-cell .lbl { font-size:10px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color: var(--grey); margin-bottom: 4px; }
+  .res-cell .val { font-size: 20px; font-weight: bold; color: var(--orange-d); font-variant-numeric: tabular-nums; }
+  .res-cell .sub { font-size: 11px; color: var(--grey); margin-top: 2px; }
+  .res-cell.lime { background: var(--pale-lime); border-left-color: var(--lime-d); }
+  .res-cell.lime .val { color: var(--lime-d); }
+  .breakdown { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+  .breakdown th { background: var(--charcoal); color:#fff; padding: 7px 8px; text-align:left; font-size:10px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; border-bottom: 3px solid var(--orange); }
+  .breakdown th.num, .breakdown td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .breakdown td { padding: 6px 8px; border-bottom: 1px solid #EEE; }
+  .breakdown tr.section td { background: var(--pale-or); font-weight: bold; font-size:11px; letter-spacing:1px; text-transform:uppercase; color: var(--charcoal); padding: 7px 10px; }
+  .breakdown tr.total td { background: var(--pale-lime); font-weight: bold; color: var(--lime-d); }
+  .breakdown tr.peak td { background: var(--charcoal); color:#fff; font-weight: bold; }
+  .breakdown .pct { color: var(--grey); font-size: 11px; }
+  .note { margin-top: 12px; padding: 10px 14px; background: #FFFBF0; border-left: 4px solid var(--amber); font-size: 12px; color: var(--grey); line-height: 1.5; }
+  .note b { color: var(--charcoal); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="../remedy-logo.png" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · HVAC Tool</div>
+      <h1>Room Load Estimator</h1>
+    </div>
+  </div>
+  <a class="back-link" href="../Remedy_Tools.html">← All Tools</a>
+</div>
+<div class="accent-bar"></div>
+<div class="accent-strip">Block sensible &amp; latent loads: envelope + infiltration + occupancy + lighting + equipment.</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-head"><span>Space Geometry</span><span class="tag" id="presetTag">Custom</span></div>
+    <div class="card-body">
+      <div class="control-row"><label>Use type</label>
+        <select id="preset">
+          <option value="custom" selected>Custom</option>
+          <option value="office">Open office</option>
+          <option value="conf">Conference room</option>
+          <option value="classroom">Classroom</option>
+          <option value="retail">Retail / merchandise</option>
+          <option value="datacloset">IT / data closet</option>
+          <option value="residential">Residential</option>
+        </select>
+      </div>
+      <div class="control-row"><label>Floor area</label><input id="area" type="number" step="10" value="500"><span class="unit">ft²</span></div>
+      <div class="control-row"><label>Ceiling height</label><input id="hgt" type="number" step="0.5" value="9"><span class="unit">ft</span></div>
+      <div class="control-row"><label>Exterior wall area</label><input id="wallA" type="number" step="10" value="120"><span class="unit">ft²</span></div>
+      <div class="control-row"><label>Window area</label><input id="winA" type="number" step="10" value="60"><span class="unit">ft²</span></div>
+      <div class="control-row"><label>Roof / ceiling area</label><input id="roofA" type="number" step="10" value="500"><span class="unit">ft²</span></div>
+      <div class="control-row"><label>Solar orientation</label>
+        <select id="solar">
+          <option value="N">North (lo)</option>
+          <option value="E">East (med)</option>
+          <option value="S" selected>South (med-hi)</option>
+          <option value="W">West (hi)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Design Conditions</div>
+    <div class="card-body">
+      <div class="control-row"><label>Outdoor design DB</label><input id="oaDb" type="number" step="0.5" value="95"><span class="unit">°F</span></div>
+      <div class="control-row"><label>Outdoor design WB</label><input id="oaWb" type="number" step="0.5" value="76"><span class="unit">°F</span></div>
+      <div class="control-row"><label>Indoor setpoint DB</label><input id="iaDb" type="number" step="0.5" value="75"><span class="unit">°F</span></div>
+      <div class="control-row"><label>Indoor setpoint RH</label><input id="iaRh" type="number" step="1" value="50"><span class="unit">%</span></div>
+      <div class="control-row"><label>Elevation</label><input id="elev" type="number" step="50" value="0"><span class="unit">ft</span></div>
+
+      <div class="sub-head">Envelope U-values</div>
+      <div class="control-row"><label>Wall U</label><input id="uWall" type="number" step="0.01" value="0.08"><span class="unit">BTU/hr·ft²·°F</span></div>
+      <div class="control-row"><label>Window U</label><input id="uWin" type="number" step="0.01" value="0.40"><span class="unit">BTU/hr·ft²·°F</span></div>
+      <div class="control-row"><label>Roof U</label><input id="uRoof" type="number" step="0.01" value="0.04"><span class="unit">BTU/hr·ft²·°F</span></div>
+      <div class="control-row"><label>Window SHGC</label><input id="shgc" type="number" step="0.05" value="0.40"><span class="unit"></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Internal Loads</div>
+    <div class="card-body">
+      <div class="control-row"><label>Occupants</label><input id="occ" type="number" step="1" value="5"><span class="unit">people</span></div>
+      <div class="control-row"><label>Activity level</label>
+        <select id="act">
+          <option value="seated" selected>Seated, light work (250 sens / 200 lat)</option>
+          <option value="office">Office work (250 sens / 250 lat)</option>
+          <option value="standing">Standing, light work (250 sens / 300 lat)</option>
+          <option value="moderate">Moderate (300 sens / 500 lat)</option>
+          <option value="heavy">Heavy work (580 sens / 870 lat)</option>
+        </select>
+      </div>
+      <div class="control-row"><label>Lighting density</label><input id="lp" type="number" step="0.1" value="0.8"><span class="unit">W/ft²</span></div>
+      <div class="control-row"><label>Equipment / plug load</label><input id="ep" type="number" step="0.1" value="1.0"><span class="unit">W/ft²</span></div>
+      <div class="control-row"><label>Outside-air rate</label><input id="oaCfm" type="number" step="1" value="75"><span class="unit">cfm</span></div>
+      <div class="control-row"><label>Infiltration</label><input id="ach" type="number" step="0.05" value="0.20"><span class="unit">ACH</span></div>
+      <div class="control-row"><label>Safety factor</label><input id="sf" type="number" step="1" value="10"><span class="unit">%</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Summary</div>
+    <div class="card-body">
+      <div class="results-grid">
+        <div class="res-cell lime"><div class="lbl">Total Cooling Load</div><div class="val" id="rTot">—</div><div class="sub" id="rTotSub">—</div></div>
+        <div class="res-cell"><div class="lbl">Sensible Load</div><div class="val" id="rSens">—</div><div class="sub" id="rSensSub">—</div></div>
+        <div class="res-cell"><div class="lbl">Latent Load</div><div class="val" id="rLat">—</div><div class="sub" id="rLatSub">—</div></div>
+        <div class="res-cell"><div class="lbl">SHR</div><div class="val" id="rSHR">—</div><div class="sub">Sensible / Total</div></div>
+        <div class="res-cell"><div class="lbl">Supply CFM</div><div class="val" id="rCFM">—</div><div class="sub" id="rCfmSub">At 20 °F supply Δt</div></div>
+        <div class="res-cell"><div class="lbl">CFM per ft²</div><div class="val" id="rCfmFt">—</div><div class="sub">Plenum check</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card full">
+    <div class="card-head">Load Breakdown</div>
+    <div class="card-body">
+      <table class="breakdown">
+        <thead>
+          <tr><th>Component</th><th class="num">Sensible (BTU/h)</th><th class="num">Latent (BTU/h)</th><th class="num">% of total</th></tr>
+        </thead>
+        <tbody id="breakBody"></tbody>
+      </table>
+      <div class="note">
+        <b>Method:</b> Envelope conduction Q = U·A·ΔT. Solar gain Q<sub>solar</sub> = SHGC·A<sub>win</sub>·CLF (orientation-based). Occupant heat from ASHRAE 2017 Ch. 18 Table 1. Ventilation/infiltration loads from c<sub>tot</sub>·CFM·Δh and c<sub>sens</sub>·CFM·ΔT with elevation density correction. This is a block load — apply oversizing factor and verify with a zone-level calc (Manual N / RHVAC) for control.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// Presets adjust geometry + internal-load assumptions
+const PRESETS = {
+  office:      { area: 1500, hgt: 9,  wallA: 240, winA: 90,  roofA: 1500, lp: 0.8, ep: 1.0, occ: 12, oaCfm: 75, act: 'office',     label: 'Open office' },
+  conf:        { area: 350,  hgt: 9,  wallA: 80,  winA: 30,  roofA: 350,  lp: 1.2, ep: 1.5, occ: 14, oaCfm: 75, act: 'seated',     label: 'Conference room' },
+  classroom:   { area: 900,  hgt: 10, wallA: 200, winA: 80,  roofA: 900,  lp: 1.2, ep: 1.0, occ: 28, oaCfm: 280,act: 'seated',     label: 'Classroom' },
+  retail:      { area: 2000, hgt: 12, wallA: 360, winA: 200, roofA: 2000, lp: 1.4, ep: 1.5, occ: 25, oaCfm: 175,act: 'standing',   label: 'Retail' },
+  datacloset:  { area: 120,  hgt: 9,  wallA: 0,   winA: 0,   roofA: 120,  lp: 0.5, ep: 25,  occ: 0,  oaCfm: 0,  act: 'office',     label: 'IT / data closet' },
+  residential: { area: 1200, hgt: 8,  wallA: 360, winA: 120, roofA: 1200, lp: 0.8, ep: 1.0, occ: 4,  oaCfm: 75, act: 'seated',     label: 'Residential' },
+  custom:      { label: 'Custom' }
+};
+
+// Activity heat gains (BTU/h per person)
+const ACT = {
+  seated:   { sens: 250, lat: 200 },
+  office:   { sens: 250, lat: 250 },
+  standing: { sens: 250, lat: 300 },
+  moderate: { sens: 300, lat: 500 },
+  heavy:    { sens: 580, lat: 870 }
+};
+
+// Solar gain "CLF" factor for window (rough peak-hour multiplier for a single-pane sunny day)
+const SOLAR = { N: 30, E: 110, S: 80, W: 160 };  // BTU/h per ft² × SHGC reference
+
+const $ = id => document.getElementById(id);
+
+function pws_si(T_K) {
+  if (T_K >= 273.15) {
+    return Math.exp(-5800.2206/T_K + 1.3914993 - 0.048640239*T_K + 0.41764768e-4*T_K*T_K - 0.14452093e-7*T_K*T_K*T_K + 6.5459673*Math.log(T_K));
+  }
+  return Math.exp(-5674.5359/T_K + 6.3925247 - 0.9677843e-2*T_K + 0.62215701e-6*T_K*T_K + 0.20747825e-8*T_K*T_K*T_K - 0.9484024e-12*T_K*T_K*T_K*T_K + 4.1635019*Math.log(T_K));
+}
+function patm_si(elev_m) {
+  const T0 = 288.15, L = 0.0065, P0 = 101325, g = 9.80665, R = 287.05;
+  return P0 * Math.pow(1 - L*elev_m/T0, g/(R*L));
+}
+function W_from_rh(T_F, rh_frac, P) {
+  const T_K = (T_F - 32)*5/9 + 273.15;
+  const pw = rh_frac * pws_si(T_K);
+  return 0.621945 * pw / (P - pw);
+}
+function W_from_wb(T_F, Twb_F, P) {
+  const T_K = (T_F - 32)*5/9 + 273.15;
+  const Twb_K = (Twb_F - 32)*5/9 + 273.15;
+  const T_C = T_K - 273.15, Tw_C = Twb_K - 273.15;
+  const Wsw = W_from_rh(Twb_F, 1.0, P);
+  return ((2501 - 2.381*Tw_C)*Wsw - 1.006*(T_C - Tw_C)) / (2501 + 1.805*T_C - 4.186*Tw_C);
+}
+function enthalpy_BTUlb(T_F, W) {
+  return 0.240 * T_F + W * (1061 + 0.444 * T_F);
+}
+
+$('preset').addEventListener('change', () => {
+  const k = $('preset').value;
+  const p = PRESETS[k];
+  $('presetTag').textContent = p.label || 'Custom';
+  if (k === 'custom') { recompute(); return; }
+  $('area').value = p.area;
+  $('hgt').value = p.hgt;
+  $('wallA').value = p.wallA;
+  $('winA').value = p.winA;
+  $('roofA').value = p.roofA;
+  $('lp').value = p.lp;
+  $('ep').value = p.ep;
+  $('occ').value = p.occ;
+  $('oaCfm').value = p.oaCfm;
+  $('act').value = p.act;
+  recompute();
+});
+
+function recompute() {
+  const area  = parseFloat($('area').value)  || 0;
+  const hgt   = parseFloat($('hgt').value)   || 0;
+  const wallA = parseFloat($('wallA').value) || 0;
+  const winA  = parseFloat($('winA').value)  || 0;
+  const roofA = parseFloat($('roofA').value) || 0;
+  const solar = $('solar').value;
+
+  const oaDb = parseFloat($('oaDb').value);
+  const oaWb = parseFloat($('oaWb').value);
+  const iaDb = parseFloat($('iaDb').value);
+  const iaRh = (parseFloat($('iaRh').value) || 0) / 100;
+  const elev_ft = parseFloat($('elev').value) || 0;
+
+  const uWall = parseFloat($('uWall').value) || 0;
+  const uWin  = parseFloat($('uWin').value)  || 0;
+  const uRoof = parseFloat($('uRoof').value) || 0;
+  const shgc  = parseFloat($('shgc').value)  || 0;
+
+  const occ   = parseFloat($('occ').value) || 0;
+  const act   = ACT[$('act').value] || ACT.seated;
+  const lp    = parseFloat($('lp').value) || 0;
+  const ep    = parseFloat($('ep').value) || 0;
+  const oaCfm = parseFloat($('oaCfm').value) || 0;
+  const ach   = parseFloat($('ach').value) || 0;
+  const sf    = (parseFloat($('sf').value) || 0) / 100;
+
+  const dT = oaDb - iaDb;
+  const P  = patm_si(elev_ft * 0.3048);
+
+  // Air constants with elevation correction
+  const rhoStd = 0.0750;
+  const rhoAlt = rhoStd * (P / 101325);
+  const c_tot  = 60 * rhoAlt;
+  const c_sens = c_tot * 0.240;
+  const c_lat  = 60 * rhoAlt * 1061;  // for humidity ratio diff in BTU/h
+
+  // Envelope conduction (sensible only)
+  const qWall = uWall * wallA * dT;
+  const qWin  = uWin  * winA  * dT;
+  const qRoof = uRoof * roofA * dT;
+  const qSolar= shgc * winA * (SOLAR[solar] || 0);
+
+  // Internal sensible
+  const qOcc_s   = occ * act.sens;
+  const qOcc_l   = occ * act.lat;
+  const qLight   = lp * area * 3.412;
+  const qEquip   = ep * area * 3.412;
+
+  // Ventilation + infiltration
+  const Woa = W_from_wb(oaDb, oaWb, P);
+  const Wia = W_from_rh(iaDb, iaRh, P);
+  const dW  = Math.max(0, Woa - Wia);   // cooling pulls in moisture only if OA > RA
+  const hOa = enthalpy_BTUlb(oaDb, Woa);
+  const hIa = enthalpy_BTUlb(iaDb, Wia);
+  const dH  = Math.max(0, hOa - hIa);
+
+  const infilCfm = ach * area * hgt / 60;
+  const totVentCfm = oaCfm + infilCfm;
+  const qVent_s = c_sens * totVentCfm * dT;
+  const qVent_l = c_lat  * totVentCfm * dW;
+
+  const sensRaw = qWall + qWin + qRoof + qSolar + qOcc_s + qLight + qEquip + qVent_s;
+  const latRaw  = qOcc_l + qVent_l;
+  const sens = sensRaw * (1 + sf);
+  const lat  = latRaw  * (1 + sf);
+  const tot  = sens + lat;
+  const shr  = tot > 0 ? sens / tot : 1;
+
+  // Supply CFM at 20 °F ΔT
+  const suppCfm = sens > 0 ? sens / (c_sens * 20) : 0;
+  const cfmFt   = area > 0 ? suppCfm / area : 0;
+
+  // Summary cells
+  $('rTot').textContent  = (tot/12000).toFixed(2) + ' tons';
+  $('rTotSub').textContent = (tot/1000).toFixed(1) + ' MBH · ' + tot.toLocaleString('en-US', {maximumFractionDigits:0}) + ' BTU/h';
+  $('rSens').textContent = (sens/1000).toFixed(1) + ' MBH';
+  $('rSensSub').textContent = (sens/12000).toFixed(2) + ' tons';
+  $('rLat').textContent  = (lat/1000).toFixed(1) + ' MBH';
+  $('rLatSub').textContent = (lat/12000).toFixed(2) + ' tons';
+  $('rSHR').textContent  = shr.toFixed(2);
+  $('rCFM').textContent  = suppCfm.toFixed(0) + ' cfm';
+  $('rCfmSub').textContent = 'sf-adjusted · ' + (suppCfm/area > 0 ? (suppCfm/area).toFixed(2) : '0') + ' cfm/ft²';
+  $('rCfmFt').textContent = cfmFt.toFixed(2);
+
+  // Breakdown table
+  const rows = [
+    ['§ENVELOPE', null, null],
+    ['Wall conduction',          qWall,  0],
+    ['Window conduction',        qWin,   0],
+    ['Roof conduction',          qRoof,  0],
+    ['Window solar gain',        qSolar, 0],
+    ['§INTERNAL', null, null],
+    ['Occupants',                qOcc_s, qOcc_l],
+    ['Lighting',                 qLight, 0],
+    ['Equipment / plug',         qEquip, 0],
+    ['§VENTILATION & INFILTRATION', null, null],
+    ['Outside air (' + oaCfm.toFixed(0) + ' cfm)', c_sens * oaCfm * dT, c_lat * oaCfm * dW],
+    ['Infiltration (' + infilCfm.toFixed(0) + ' cfm)', c_sens * infilCfm * dT, c_lat * infilCfm * dW]
+  ];
+
+  const tb = $('breakBody');
+  tb.innerHTML = '';
+  rows.forEach(([n, s, l]) => {
+    if (typeof n === 'string' && n.startsWith('§')) {
+      tb.innerHTML += `<tr class="section"><td colspan="4">${n.slice(1)}</td></tr>`;
+      return;
+    }
+    const pct = tot > 0 ? ((s + l) / tot) * 100 : 0;
+    tb.innerHTML += `<tr><td>${n}</td><td class="num">${s.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${l.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num pct">${pct.toFixed(1)}%</td></tr>`;
+  });
+  tb.innerHTML += `<tr class="total"><td>Subtotal (before safety factor)</td><td class="num">${sensRaw.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${latRaw.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${(sensRaw+latRaw).toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`;
+  tb.innerHTML += `<tr class="total"><td>Safety factor (${(sf*100).toFixed(0)}%)</td><td class="num">${(sens-sensRaw).toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${(lat-latRaw).toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${((sens-sensRaw)+(lat-latRaw)).toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`;
+  tb.innerHTML += `<tr class="peak"><td>Design block load</td><td class="num">${sens.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${lat.toLocaleString('en-US',{maximumFractionDigits:0})}</td><td class="num">${tot.toLocaleString('en-US',{maximumFractionDigits:0})}</td></tr>`;
+}
+
+['preset','area','hgt','wallA','winA','roofA','solar',
+ 'oaDb','oaWb','iaDb','iaRh','elev',
+ 'uWall','uWin','uRoof','shgc',
+ 'occ','act','lp','ep','oaCfm','ach','sf'
+].forEach(id => {
+  $(id).addEventListener('input', recompute);
+  $(id).addEventListener('change', recompute);
+});
+
+recompute();
+</script>
+
+</body>
+</html>

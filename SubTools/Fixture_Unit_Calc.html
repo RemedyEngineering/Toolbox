@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="../shared/theme.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixture Unit Calculator — Remedy Engineering</title>
+<link rel="icon" type="image/x-icon" href="../favicon.ico?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=2">
+<link rel="icon" type="image/png" sizes="16x16" href="../favicon-16.png?v=2">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png?v=2">
+<link rel="shortcut icon" href="../favicon.ico?v=2">
+<style>
+  :root {
+    --charcoal:#2B2B2B; --orange:#ef702d; --orange-d:#c45a1e;
+    --amber:#F0A010; --lime:#99a668; --lime-d:#839053;
+    --pale-or:#fde8d5; --pale-lime:#e8edda; --key-lime:#D6E5A8; --cream:#FFF4E0;
+    --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F4F4F4;
+  }
+  * { box-sizing: border-box; }
+  html { margin:0; padding:0; scrollbar-gutter: stable; }
+  body { margin:0; padding:0; }
+  body { font-family: Calibri,"Segoe UI",Tahoma,sans-serif; color: var(--ink); background: var(--bg); font-size: 14px; }
+  /* ======== HEADER (canonical) ======== */
+  .header {
+    background: var(--white, var(--white));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border, var(--border));
+    gap: 18px; flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 18px; }
+  .header img { height: 52px; display: block; }
+  .header-divider { width: 1px; height: 44px; background: var(--border, var(--border)); }
+  .header-titles { line-height: 1.1; }
+  .header .eyebrow {
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange-d, var(--orange-d)); margin-bottom: 4px;
+  }
+  .header h1 {
+    margin: 0; font-size: 22px; font-weight: bold;
+    color: var(--ink, var(--ink)); letter-spacing: 0.3px;
+  }
+
+  /* ======== GREETING (canonical) ======== */
+  .greeting {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--grey, var(--grey));
+  }
+  .greeting strong { color: var(--ink, var(--ink)); font-weight: 600; }
+  .greeting .pencil-btn {
+    background: transparent; border: none; padding: 2px 4px;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    color: var(--grey-l, var(--grey-l));
+    opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .greeting:hover .pencil-btn { opacity: 1; }
+  .greeting .pencil-btn:hover { color: var(--orange, var(--orange)); }
+
+  /* ======== ACCENT STRIPES (canonical) ======== */
+  .accent-stripes { display: flex; height: 5px; }
+  .accent-stripes span { flex: 1; }
+  .accent-stripes .s-charcoal { background: var(--charcoal, var(--charcoal)); }
+  .accent-stripes .s-orange   { background: var(--orange, var(--orange)); }
+  .accent-stripes .s-lime     { background: var(--lime-d, var(--lime-d)); }
+
+  /* ======== TAB NAV (canonical) ======== */
+  .tabnav {
+    background: var(--charcoal, var(--charcoal));
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    padding: 0 12px;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px;
+    color: rgba(255,244,224,0.72);
+    text-decoration: none;
+    font-size: 12px; font-weight: bold;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .tab:hover { color: var(--on-dark); background: var(--charcoal-2, var(--charcoal-2)); }
+  .tab.is-active {
+    color: var(--on-dark);
+    border-bottom-color: var(--orange, var(--orange));
+    background: var(--charcoal-2, var(--charcoal-2));
+  }
+  .tab .tab-dot { width: 7px; height: 7px; background: var(--lime, var(--lime)); display: inline-block; }
+  .tab.is-active .tab-dot { background: var(--orange, var(--orange)); }
+  @media (max-width: 800px) {
+    .tab { padding: 12px 14px; font-size: 11px; letter-spacing: 1.5px; }
+  }
+  @media (max-width: 640px) {
+    .header { padding: 10px 16px; gap: 12px; }
+    .header img { height: 40px; }
+    .header-divider { height: 36px; }
+    .header h1 { font-size: 18px; }
+    .header .eyebrow { font-size: 10px; letter-spacing: 1.5px; }
+  }
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip { background: var(--charcoal); color:var(--on-dark); font-style:italic; font-weight:bold; font-size:13px; padding:6px 24px; }
+
+
+  .container { max-width: 1280px; margin: 18px auto; padding: 0 16px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 16px; }
+  @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+  .card { background:var(--white); border:1px solid var(--border); }
+  .card-head { background: var(--charcoal); color:var(--on-dark); font-weight:bold; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:9px 14px; border-bottom: 3px solid var(--orange); display:flex; justify-content:space-between; align-items:center; }
+  .card-head .total { font-weight:bold; font-size:12px; color: var(--lime); letter-spacing:1px; }
+  .card-body { padding: 14px 16px 16px; }
+  .mode-row { display:flex; gap:8px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+  .mode-toggle { display:inline-flex; border:2px solid var(--charcoal); }
+  .mode-toggle button { background:var(--white); color: var(--ink); border:0; font-family:inherit; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; padding:7px 12px; cursor:pointer; }
+  .mode-toggle button.active { background: var(--orange); color:var(--on-dark); }
+  .slope-row { margin-bottom:12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .slope-row label { font-size:11px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color: var(--grey); }
+  .slope-row select { font-family:inherit; font-size:13px; font-weight:bold; color: var(--orange-d); background: var(--cream); border:1px solid var(--border); padding:6px 8px; outline:none; }
+  .slope-row select:focus { border-color: var(--orange); }
+  table.fix { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.fix th { background: var(--charcoal); color:var(--on-dark); padding: 7px 8px; text-align: left; font-size:10px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; border-bottom: 3px solid var(--orange); }
+  table.fix th.num, table.fix td.num { text-align: center; }
+  table.fix td { padding: 6px 8px; border-bottom: 1px solid var(--hair); }
+  table.fix td.unit { font-variant-numeric: tabular-nums; font-weight: bold; color: var(--grey); }
+  table.fix td.dim { color: var(--grey-l); font-size: 11px; font-style: italic; }
+  table.fix input[type="number"] { width: 56px; font-family: inherit; font-size: 13px; padding: 4px 6px; border:1px solid var(--border); background: var(--cream); color: var(--orange-d); font-weight: bold; text-align: center; outline: none; }
+  table.fix input[type="number"]:focus { border-color: var(--orange); }
+  table.fix tr.cat-row td { background: var(--pale-or); font-weight: bold; font-size:11px; letter-spacing:1px; text-transform:uppercase; color: var(--ink); padding: 8px 10px; }
+  .results-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; }
+  .res-cell { background: var(--cream); border-left: 4px solid var(--orange); padding: 12px 14px; }
+  .res-cell .lbl { font-size:10px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color: var(--grey); margin-bottom: 4px; }
+  .res-cell .val { font-size: 22px; font-weight: bold; color: var(--orange-d); font-variant-numeric: tabular-nums; }
+  .res-cell .sub { font-size: 11px; color: var(--grey); margin-top: 3px; }
+  .totals { background: var(--pale-lime); border:1px solid var(--border); padding: 12px 14px; margin-bottom: 10px; }
+  .totals h3 { margin:0 0 6px 0; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color: var(--ink); }
+  .totals-row { display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed var(--hair); font-size:13px; }
+  .totals-row:last-child { border-bottom:none; }
+  .totals-row .lab { font-weight:bold; }
+  .totals-row .val { font-variant-numeric: tabular-nums; font-weight:bold; color: var(--orange-d); }
+  .note { margin-top: 10px; padding: 10px 14px; background: #FFFBF0; border-left: 4px solid var(--amber); font-size: 12px; color: var(--grey); line-height: 1.5; }
+  .note b { color: var(--ink); }
+  .pipe-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+  .pipe-table th { background: var(--pale-or); color: var(--ink); padding:6px; font-size:10px; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--border); }
+  .pipe-table td { padding:5px 6px; border-bottom:1px solid var(--hair); font-variant-numeric: tabular-nums; }
+  .pipe-table td.match { background: var(--key-lime); font-weight:bold; }
+  .footer { background: var(--charcoal); color: var(--on-dark); font-size: 12px; padding: 10px 24px; margin-top: 16px; text-align: center; }
+  .footer a { color: var(--lime); text-decoration: none; }
+  @media (max-width: 640px) {
+    .container { margin: 8px auto; padding: 0 8px; }
+    .card-head { font-size: 13px; padding: 7px 10px; }
+    .card-body { padding: 10px; }
+    .res-cell .val { font-size: 18px; }
+  }
+
+  /* ============ ACHIEVEMENT TOAST ============ */
+  .ach-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    cursor: pointer;
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--charcoal, var(--charcoal)); color: var(--on-dark, var(--on-dark));
+    padding: 14px 18px; max-width: 340px;
+    border-left: 4px solid var(--orange, #e8862a);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 9999;
+  }
+  .ach-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .ach-toast-emoji { font-size: 28px; line-height: 1; flex-shrink: 0; }
+  .ach-toast-text { display: flex; flex-direction: column; gap: 2px; }
+  .ach-toast-label {
+    font-size: 9px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--orange, #e8862a);
+  }
+  .ach-toast-title { font-size: 14px; font-weight: bold; }
+  .ach-toast-desc { font-size: 11px; color: rgba(255,244,224,0.7); }
+  .ach-toast-reward { font-size: 10px; color: var(--orange-l, var(--orange-l)); font-style: italic; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="data:image/png;base64,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" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · Plumbing Tool</div>
+      <h1>Fixture Unit Calculator</h1>
+    </div>
+  </div>
+
+  <div class="greeting" id="greeting">
+    <span id="greet-text">Welcome.</span>
+    <button class="pencil-btn" id="greet-edit" title="Edit profile" aria-label="Edit profile">&#9998;</button>
+  </div>
+</div>
+<div class="accent-stripes" aria-hidden="true">
+  <span class="s-charcoal"></span>
+  <span class="s-orange"></span>
+  <span class="s-lime"></span>
+</div>
+<nav class="tabnav" aria-label="Primary">
+  <a class="tab" href="../Remedy_Home.html"><span class="tab-dot"></span>Home</a>
+  <a class="tab is-active" href="../Remedy_Tools.html"><span class="tab-dot"></span>Tools</a>
+  <a class="tab" href="../Training_Library.html"><span class="tab-dot"></span>Documentation</a>
+</nav>
+<div class="accent-bar"></div>
+<div class="accent-strip">Tally DFU and WSFU loads per NPC 2020 Tables 2.4.9.3 and 2.6.3.2.-A, then size sanitary drains and convert WSFU → gpm via Hunter's curve.</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-head"><span>Fixture Schedule (NPC 2020)</span><span class="total" id="hCount">0 fixtures</span></div>
+    <div class="card-body">
+      <div class="mode-row">
+        <span style="font-size:11px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color: var(--grey); margin-right:8px;">WSFU mode</span>
+        <div class="mode-toggle">
+          <button id="mPriv" class="active" type="button">Private use</button>
+          <button id="mPub" type="button">Public use</button>
+        </div>
+        <span style="flex:1"></span>
+        <button id="resetBtn" type="button" style="font-family:inherit; font-size:11px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; padding:7px 12px; background:var(--white); border:2px solid var(--charcoal); cursor:pointer;">Reset</button>
+      </div>
+      <table class="fix">
+        <thead>
+          <tr>
+            <th>Fixture</th>
+            <th class="num">Count</th>
+            <th class="num">Min NPS</th>
+            <th class="num">DFU ea.</th>
+            <th class="num">Cold WSFU</th>
+            <th class="num">Hot WSFU</th>
+            <th class="num">Total WSFU</th>
+          </tr>
+        </thead>
+        <tbody id="fixBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span>Totals &amp; Drainage Sizing</span></div>
+    <div class="card-body">
+
+      <div class="totals">
+        <h3>Drainage — NPC 2020 Table 2.4.9.3</h3>
+        <div class="totals-row"><span class="lab">Total DFU</span><span class="val" id="totDfu">0</span></div>
+      </div>
+
+      <div class="totals">
+        <h3>Water Supply — NPC 2020 Table 2.6.3.2.-A</h3>
+        <div class="totals-row"><span class="lab">Cold WSFU</span><span class="val" id="totCold">0</span></div>
+        <div class="totals-row"><span class="lab">Hot WSFU</span><span class="val" id="totHot">0</span></div>
+        <div class="totals-row"><span class="lab">Total combined WSFU</span><span class="val" id="totWsfu">0</span></div>
+      </div>
+
+      <div class="results-grid">
+        <div class="res-cell">
+          <div class="lbl">Cold Demand (Hunter)</div>
+          <div class="val" id="gpmCold">— gpm</div>
+          <div class="sub" id="lpsCold">— L/s</div>
+        </div>
+        <div class="res-cell">
+          <div class="lbl">Hot Demand (Hunter)</div>
+          <div class="val" id="gpmHot">— gpm</div>
+          <div class="sub" id="lpsHot">— L/s</div>
+        </div>
+        <div class="res-cell">
+          <div class="lbl">Total Demand (Hunter)</div>
+          <div class="val" id="gpmTot">— gpm</div>
+          <div class="sub" id="lpsTot">— L/s</div>
+        </div>
+        <div class="res-cell">
+          <div class="lbl">Total DFU</div>
+          <div class="val" id="dfuBig">0</div>
+          <div class="sub" id="dfuMode">NPC 2020 drainage load</div>
+        </div>
+      </div>
+
+      <div class="slope-row">
+        <label for="drainKind">Pipe role</label>
+        <select id="drainKind">
+          <option value="branch">Branch (Table 2.4.10.6.-B)</option>
+          <option value="bldg" selected>Building drain / sewer (Table 2.4.10.6.-C)</option>
+        </select>
+        <label for="drainSlope" id="slopeLbl">Slope</label>
+        <select id="drainSlope">
+          <option value="1:400">1:400 (0.25%)</option>
+          <option value="1:200">1:200 (0.5%)</option>
+          <option value="1:133">1:133 (0.75%)</option>
+          <option value="1:100">1:100 (1.0%)</option>
+          <option value="1:50" selected>1:50 (2.0% ≈ 1/4"/ft)</option>
+          <option value="1:25">1:25 (4.0% ≈ 1/2"/ft)</option>
+        </select>
+      </div>
+
+      <table class="pipe-table">
+        <thead>
+          <tr><th id="pipeColHdr">Building drain @ 1:50</th><th>DFU cap</th><th>Status</th></tr>
+        </thead>
+        <tbody id="pipeBody"></tbody>
+      </table>
+
+      <div class="note">
+        <b>Method:</b> All fixture units per <b>National Plumbing Code of Canada 2020</b> — DFU values from Table 2.4.9.3, WSFU from Table 2.6.3.2.-A.
+        Direct-flush-valve WCs and urinals use cumulative WSFU per Tables 2.6.3.2.-B and 2.6.3.2.-C. Drain sizing per Tables 2.4.10.6.-B (branches) and 2.4.10.6.-C (building drains/sewers).
+        Hunter's curve (1940) converts WSFU to probable simultaneous flow — not part of NPC, used as a planning estimate only.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Remedy Engineering &nbsp;|&nbsp; NPC 2020 · Tables 2.4.9.3, 2.4.10.6.-B/C, 2.6.3.2.-A/B/C · Hunter's curve &nbsp;|&nbsp; For preliminary engineering use — verify against the governing plumbing code.
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   ACHIEVEMENTS SYSTEM
+   ============================================================ */
+var __achievementsAPI = (function() {
+  var PREFIX = 'remedy.ach.';
+  var REGISTRY = [
+    // ── Unit Converter ──
+    { id: 'uc_first_convert',    emoji: '📐', title: 'Baby\'s First Conversion',    desc: 'You converted a unit. The engineering world trembles at your potential.' , reward: 'One (1) mass-produced participation ribbon.' },
+    { id: 'uc_hot_take',         emoji: '🌡️', title: 'Thermodynamic Personality',   desc: 'You converted a temperature. The thermostat war in your office rages on.' , reward: 'Ownership of exactly zero thermostats.' },
+    { id: 'uc_bilingual',        emoji: '🌍', title: 'Renaissance Engineer',        desc: 'Used every unit category. Your versatility is almost suspicious.' , reward: 'An honorary degree from a university we made up.' },
+    { id: 'uc_going_in_circles', emoji: '🔁', title: 'The Round Trip',              desc: 'Converted a value then immediately converted it back. We\'ve all been there.' , reward: 'A round-trip ticket to nowhere.' },
+    { id: 'uc_power_user',       emoji: '💯', title: 'Quantity Over Quality',       desc: '100 conversions. At this point you should probably just memorize the formula.' , reward: 'A lanyard that reads: Adequate.' },
+    { id: 'uc_absolute_zero',    emoji: '❄️', title: 'Absolute Zero Chill',         desc: '0 Kelvin. Nothing is colder than this except your office\'s server room.' , reward: 'A blanket. You clearly need one.' },
+    { id: 'uc_mystery',          emoji: '❓', title: 'The Audacity',                desc: 'You searched for a unit that doesn\'t exist. Points for confidence.' , reward: 'Nothing. Confidence is its own reward.' },
+    { id: 'uc_legend',           emoji: '🏛️', title: 'Professional Unit Botherer',  desc: '1,000 conversions. Google is free, but here we are.' , reward: 'A calculator. Since you clearly refuse to use one.' },
+    // ── Duct Sizer ──
+    { id: 'ds_first_duct',       emoji: '📏', title: 'Into the Void',               desc: 'You sized your first duct. Somewhere, an HVAC system just got a little less wrong.' , reward: 'A handshake from a man named Gerald.' },
+    { id: 'ds_design_friction',  emoji: '🎯', title: 'The Sweet Spot',              desc: '0.08–0.10 in.w.g./100ft. The engineering equivalent of a perfect parallel park.' , reward: 'Fifteen seconds of respectful silence.' },
+    { id: 'ds_speed_demon',      emoji: '💨', title: 'Mach Speed Ductwork',         desc: 'Velocity over 2,000 FPM. That\'s not a duct, that\'s a wind tunnel with ambitions.' , reward: 'A speeding ticket from the ductwork police.' },
+    { id: 'ds_reynolds',         emoji: '🔬', title: 'Turbulence Enthusiast',       desc: 'Re > 10,000. Turbulent flow, just like your Monday mornings.' , reward: 'A laminar flow of appreciation.' },
+    { id: 'ds_friction_fanatic', emoji: '🌀', title: 'Friction Fanatic',            desc: '50 duct calculations. Your dedication to airflow is statistically abnormal.' , reward: 'The admiration of absolutely no one at the party.' },
+    { id: 'ds_concrete',         emoji: '🧱', title: 'Brutalist Architecture',      desc: 'You selected concrete ducts. We have questions, but we respect the commitment.' , reward: 'A very heavy trophy. Made of concrete, naturally.' },
+    { id: 'ds_mystery',          emoji: '❓', title: 'Gentle Breeze',               desc: 'Under 200 FPM. That\'s not air distribution, that\'s a polite suggestion.' , reward: 'A gentle pat on the back. Almost imperceptible.' },
+    { id: 'ds_legend',           emoji: '🏗️', title: 'Duct Whisperer',             desc: '250 duct calcs. The ducts speak to you now. This is either expertise or a cry for help.' , reward: 'An office with a window. The window does not open.' },
+    // ── VAV Box Sizer ──
+    { id: 'vav_box_office',      emoji: '📦', title: 'Box Office Hit',              desc: 'First VAV box sized. One small step for airflow, one giant leap for your submittal.' , reward: 'A box. Inside the box is a smaller box.' },
+    { id: 'vav_in_zone',         emoji: '✅', title: 'Nailed It',                   desc: 'Flow landed perfectly between min and max. Screenshot this. It may never happen again.' , reward: 'Bragging rights. Non-transferable. Non-redeemable.' },
+    { id: 'vav_go_big',          emoji: '📏', title: 'Compensating for Something',  desc: 'You sized the 24×16. That\'s not a VAV box, that\'s a studio apartment.' , reward: 'A studio apartment. Inside a VAV box.' },
+    { id: 'vav_below_floor',     emoji: '⚠️', title: 'Underachiever',               desc: 'Hit the minimum flow warning. The box is disappointed in you.' , reward: 'A participation trophy. Hollow, like the flow rate.' },
+    { id: 'vav_goldilocks',      emoji: '🎯', title: 'Goldilocks Protocol',         desc: 'Sized every box from 4″ to 24×16. Put it on your resume.' , reward: 'Three bowls of porridge. All the wrong temperature.' },
+    { id: 'vav_thinking_small',  emoji: '🔹', title: 'Fun Sized',                   desc: '4″ box at minimum flow. For when the closet absolutely needs conditioned air.' , reward: 'A very small trophy for a very small achievement.' },
+    { id: 'vav_mystery',         emoji: '❓', title: 'Ambitious',                   desc: 'Over maximum on the biggest box. You dreamed too big and the box said no.' , reward: 'A motivational poster that reads: Aim Lower.' },
+    // ── Fan Static Calculator ──
+    { id: 'fs_under_pressure',   emoji: '🌬️', title: 'Under Pressure',              desc: 'First fan static calc complete. Queen and David Bowie would be proud.' , reward: 'A vinyl record you cannot play at work.' },
+    { id: 'fs_kitchen',          emoji: '🍕', title: 'Kitchen Nightmare',           desc: 'Grease-laden exhaust selected. May your ductwork never meet a match.' , reward: 'A pizza you will never receive.' },
+    { id: 'fs_collector',        emoji: '🏗️', title: 'Hoarder of Components',       desc: '10+ components in one system. This stopped being engineering three fittings ago.' , reward: 'More components. Obviously.' },
+    { id: 'fs_fire',             emoji: '🔥', title: 'Playing with Fire',           desc: 'High-temp smoke control selected. Please tell us this is theoretical.' , reward: 'A fire extinguisher. Decorative only.' },
+    { id: 'fs_safety',           emoji: '🛡️', title: 'Safety Third',                desc: 'Safety factor at 25%+. You\'ve been burned before. Figuratively. We hope.' , reward: 'A safety vest. For your spreadsheets.' },
+    { id: 'fs_multi_system',     emoji: '🏛️', title: 'System Hoarder',              desc: '5+ systems in one session. You\'re not sizing fans, you\'re building a civilization.' , reward: 'The title of Emperor. Subjects not included.' },
+    { id: 'fs_fume',             emoji: '☣️', title: 'Hazard Pay',                  desc: 'Fume exhaust selected. Your nose thanks you for the consideration.' , reward: 'A gas mask. Non-functional. Display purposes only.' },
+    { id: 'fs_mystery',          emoji: '❓', title: 'Credit Where Due',            desc: 'Named your engineer and exported. Taking credit — the most important engineering skill.' , reward: 'Your name in 8pt font on a PDF no one will open.' },
+    // ── Pipe Sizer ──
+    { id: 'ps_pipe_dream',       emoji: '🚿', title: 'Pipe Dream',                  desc: 'First pipe calc done. Water will flow. Probably in the right direction.' , reward: 'A pipe dream. It is literally a dream about a pipe.' },
+    { id: 'ps_fixture_fixer',    emoji: '🚽', title: 'Flush with Success',          desc: 'Used the sanitary DFU calculator. Glamorous work.' , reward: 'A golden plunger. Not actual gold. Not an actual plunger.' },
+    { id: 'ps_cold_blooded',     emoji: '🧊', title: 'Cold Blooded',                desc: '40%+ propylene glycol. Your pipes won\'t freeze but your budget might.' , reward: 'A parka. Your budget will need it.' },
+    { id: 'ps_triple_threat',    emoji: '🏗️', title: 'Triple Threat',               desc: 'Used all three pipe calculators. Hydronic, sanitary, domestic — the pipe trifecta nobody asked for.' , reward: 'A three-headed trophy. None of the heads match.' },
+    { id: 'ps_alchemist',        emoji: '⚗️', title: 'The Alchemist',               desc: 'Steel, copper, and PEX. You don\'t have a favourite material. You love them all equally.' , reward: 'A rock with googly eyes. We call it the Philosopher Stone.' },
+    { id: 'ps_steep_grade',      emoji: '📐', title: 'Steep Grade',                 desc: '1:25 sanitary slope. That drain has places to be.' , reward: 'A tiny sled. For the drain.' },
+    { id: 'ps_mystery',          emoji: '❓', title: 'Antifreeze Sommelier',        desc: '60% propylene glycol. At this point it\'s basically syrup.' , reward: 'A bottle of syrup. Regular syrup. Not glycol.' },
+    // ── Heating Loop ──
+    { id: 'hl_loop_de_loop',     emoji: '♨️', title: 'Loop de Loop',                desc: 'First heating loop complete. Warm feelings all around. Literally.' , reward: 'A warm feeling. Thermal, not emotional.' },
+    { id: 'hl_full_house',       emoji: '🏨', title: 'Full House',                  desc: '20+ terminal units. That\'s not a loop, that\'s a logistics operation.' , reward: 'A sitcom laugh track plays in your honour.' },
+    { id: 'hl_delta_force',      emoji: '🌡️', title: 'Delta Force',                 desc: 'ΔT of 40°F+. Subtlety was clearly not in the design brief.' , reward: 'A pair of sunglasses you did not ask for.' },
+    { id: 'hl_multi_loop',       emoji: '🔀', title: 'Multi-Loop Maestro',          desc: '3+ loops in one project. You\'re not designing heating, you\'re composing a symphony.' , reward: 'A baton. For conducting your symphony of loops.' },
+    { id: 'hl_load_bearer',      emoji: '🧮', title: 'Load Bearer',                 desc: '500+ MBH. That\'s not heating, that\'s a small industrial operation with a dream.' , reward: 'A hard hat. For your desk.' },
+    { id: 'hl_district_heat',    emoji: '🏭', title: 'District Heating Overlord',   desc: '2,000+ MBH. You are now personally responsible for warming a small neighborhood.' , reward: 'A small neighbourhood. Population: zero.' },
+    // ── Louver Sizer ──
+    { id: 'ls_fresh_intake',     emoji: '🌀', title: 'Fresh Intake',                desc: 'First louver sized. Fresh air is overrated, but code says otherwise.' , reward: 'A single breath of fresh air. Use wisely.' },
+    { id: 'ls_rain_brain',       emoji: '🌧️', title: 'Rain Brain',                  desc: 'Intake within drainable velocity limit. The building will stay dry. Probably.' , reward: 'An umbrella that does not close.' },
+    { id: 'ls_high_velocity',    emoji: '💨', title: 'Terminal Velocity',            desc: 'Exhaust over 1,000 FPM. That air is LEAVING and it\'s not coming back.' , reward: 'A farewell card for the departing air.' },
+    { id: 'ls_big_face',         emoji: '📐', title: 'Big Face Energy',             desc: 'Face area over 25 ft². That\'s not a louver, that\'s a window with commitment issues.' , reward: 'A comically oversized novelty cheque. Amount: $0.00.' },
+    { id: 'ls_velocity_check',   emoji: '⚡', title: 'Living on the Edge',          desc: 'Within 2% of max velocity. Bold. Reckless. Efficient.' , reward: 'An adrenaline rush. Invoice to follow.' },
+    { id: 'ls_mystery',          emoji: '❓', title: 'Warranty Voided',             desc: 'Exceeded the recommended intake velocity. The manufacturer just felt a disturbance.' , reward: 'A sternly worded letter from a louver manufacturer.' },
+    // ── Psychrometric ──
+    { id: 'psy_wet_bulb',        emoji: '💧', title: 'Certified Air Nerd',          desc: 'First psychrometric lookup complete. There is no going back.' , reward: 'A one-way ticket to the psychrometric chart dimension.' },
+    { id: 'psy_mile_high',       emoji: '🏔️', title: 'Mile High',                   desc: 'Elevation over 5,000 ft. The air is thinner but your calcs are not.' , reward: 'Thin air. You may keep it.' },
+    { id: 'psy_desert_dry',      emoji: '🌵', title: 'Bone Dry',                    desc: 'RH below 10%. Even the air is dehydrated. Drink some water.' , reward: 'A glass of water. Please actually drink it.' },
+    { id: 'psy_saturation',      emoji: '🌊', title: 'You Made a Cloud',            desc: '100% RH entered. Congratulations, you\'ve invented weather indoors.' , reward: 'Indoor weather rights. Non-transferable.' },
+    { id: 'psy_four_mode',       emoji: '🔬', title: 'Four-Mode Engineer',          desc: 'Used all four input modes. You are become psychrometrics, destroyer of comfort zones.' , reward: 'A lab coat. Slightly used. Mostly clean.' },
+    { id: 'psy_mystery',         emoji: '❓', title: 'Surface of the Sun',          desc: 'Dry-bulb over 120°F. Sir, this is a building, not a kiln.' , reward: 'SPF 5000 sunscreen. Theoretical protection only.' },
+    // ── Training Library ──
+    { id: 'tl_first_chapter',    emoji: '📖', title: 'Page Turner',                 desc: 'Opened your first training doc. Knowledge is power. Allegedly.' , reward: 'Knowledge. Allegedly.' },
+    { id: 'tl_template_tamer',   emoji: '📋', title: 'Standing on Shoulders',       desc: 'Downloaded a template. Honour the person who made this by filling it in correctly.' , reward: 'The eternal gratitude of whoever made that template.' },
+    { id: 'tl_code_walker',      emoji: '📜', title: 'Code Walker',                 desc: 'Accessed Codes & Standards. Light reading for the truly unhinged.' , reward: 'A bookmark. You will need several.' },
+    { id: 'tl_cross_disciplined',emoji: '🎓', title: 'Cross-Disciplined',           desc: '4+ library sections visited. You\'re either thorough or completely lost.' , reward: 'A compass. You are clearly lost.' },
+    { id: 'tl_deep_search',      emoji: '🔍', title: 'Deep Search',                 desc: 'Used search to find and open a doc. Ctrl+F energy, but for your career.' , reward: 'The satisfaction of not scrolling like a barbarian.' },
+    { id: 'tl_librarian',        emoji: '🏆', title: 'The Librarian',               desc: '50 documents opened. At this point, just move into the training library.' , reward: 'A library card. Valid at exactly zero libraries.' },
+    // ── Platform-Wide ──
+    { id: 'pw_fresh_air',        emoji: '👋', title: 'Hello World',                 desc: 'You entered your name. The toolbox now acknowledges you as a person.' , reward: 'Acknowledgement as a person. The bare minimum.' },
+    { id: 'pw_tool_tourist',     emoji: '🌐', title: 'Tool Tourist',                desc: 'Visited every tool. You\'ve seen things. Calculators. Dropdowns. Unspeakable tables.' , reward: 'A postcard from every tool. None are interesting.' },
+    { id: 'pw_deadline_eng',     emoji: '🌙', title: 'The Deadline Engineer',       desc: 'Using the toolbox between midnight and 4 AM. The project is due tomorrow, isn\'t it.' , reward: 'Imaginary coffee. Dangerously strong.' },
+    { id: 'pw_night_owl',        emoji: '🦉', title: 'Night Owl',                   desc: 'Toolbox use after 10 PM. Go home. Or don\'t. We\'re not your manager.' , reward: 'Permission to go home. You will not use it.' },
+    { id: 'pw_early_bird',       emoji: '🐦', title: 'Early Bird',                  desc: 'Toolbox use before 6 AM. Either extremely dedicated or haven\'t slept. Both valid.' , reward: 'A worm. The early bird gets one. Sorry.' },
+    { id: 'pw_seven_day_streak', emoji: '📅', title: '7-Day Streak',                desc: 'Seven days in a row. Weekends are a social construct anyway.' , reward: 'A calendar with the weekends removed.' },
+    { id: 'pw_search_party',     emoji: '🔎', title: 'Search Party',                desc: '100 searches. You have personally kept this search bar employed.' , reward: 'A magnifying glass. Mostly decorative.' },
+    { id: 'pw_egg_found',        emoji: '🥚', title: 'Easter Egg Hunter',           desc: 'Found a hidden easter egg. You weren\'t supposed to find that.' , reward: 'A chocolate egg. Digital. You cannot eat it.' },
+    { id: 'pw_bookworm',         emoji: '📚', title: 'Digital Hoarder',             desc: '5+ favourites. You favourite things like your career depends on it.' , reward: 'A bookshelf. Assembly required. Instructions missing.' },
+    { id: 'pw_organized',        emoji: '📁', title: 'Organized',                   desc: 'Reordered your favourites. Rearranging deck chairs, but productively.' , reward: 'A label maker. Batteries sold separately. Labels not included.' },
+    { id: 'pw_identity_crisis',  emoji: '🥸', title: 'Identity Crisis',             desc: 'Changed your name 3+ times. Still figuring things out. That\'s okay.' , reward: 'A name tag. Currently blank. Fitting.' },
+    { id: 'pw_profile_visitor',  emoji: '🪞', title: 'Self Reflection',             desc: 'Visited the profile page. Sometimes you just need to look yourself in the eye.' , reward: 'Self-awareness. Handle with care.' },
+    { id: 'pw_remedy_lifer',     emoji: '🎖️', title: 'Remedy Lifer',                desc: '40+ achievements. You\'re either incredibly thorough or procrastinating spectacularly.' , reward: 'A corner office in a building that has not been designed yet.' }
+  ];
+
+  var _toastEl = null;
+  var _toastTimer = null;
+  var _toastQueue = [];
+  var _toastShowing = false;
+
+  function _getToast() {
+    if (_toastEl) return _toastEl;
+    _toastEl = document.createElement('div');
+    _toastEl.className = 'ach-toast';
+    _toastEl.setAttribute('role', 'status');
+    _toastEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(_toastEl);
+    _toastEl.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html#achievements';
+    });
+    return _toastEl;
+  }
+
+  function _processQueue() {
+    if (_toastQueue.length === 0) { _toastShowing = false; return; }
+    _toastShowing = true;
+    var ach = _toastQueue.shift();
+    var el = _getToast();
+    el.innerHTML = '<span class="ach-toast-emoji">' + ach.emoji + '</span>' +
+      '<div class="ach-toast-text">' +
+        '<span class="ach-toast-label">Achievement Unlocked</span>' +
+        '<span class="ach-toast-title">' + ach.title + '</span>' +
+        '<span class="ach-toast-desc">' + ach.desc + '</span>' +
+        (ach.reward ? '<span class="ach-toast-reward">✦ ' + ach.reward + '</span>' : '') +
+      '</div>';
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function() {
+      el.classList.remove('show');
+      setTimeout(_processQueue, 350);
+    }, 3200);
+  }
+
+  function _showToast(ach) {
+    _toastQueue.push(ach);
+    if (!_toastShowing) _processQueue();
+  }
+
+  function unlock(id) {
+    var key = PREFIX + id;
+    if (localStorage.getItem(key)) return false;
+    localStorage.setItem(key, new Date().toISOString());
+    var ach = REGISTRY.find(function(a) { return a.id === id; });
+    if (ach) _showToast(ach);
+    _checkRemedy();
+    return true;
+  }
+
+  function isUnlocked(id) {
+    return !!localStorage.getItem(PREFIX + id);
+  }
+
+  function getAll() {
+    return REGISTRY.map(function(a) {
+      var ts = localStorage.getItem(PREFIX + a.id);
+      return { id: a.id, emoji: a.emoji, title: a.title, desc: a.desc, reward: a.reward || '', unlocked: !!ts, date: ts || null };
+    });
+  }
+
+  function getUnlockedCount() {
+    return REGISTRY.filter(function(a) { return !!localStorage.getItem(PREFIX + a.id); }).length;
+  }
+
+  function _checkRemedy() {
+    if (getUnlockedCount() >= 40) unlock('pw_remedy_lifer');
+  }
+
+  function trackPageVisit(page) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_visited') || '{}';
+      var visited = JSON.parse(raw);
+      visited[page] = 1;
+      localStorage.setItem(PREFIX + '_visited', JSON.stringify(visited));
+      var keys = Object.keys(visited);
+      if (visited.home && visited.tools && visited.docs) {
+        var allTools = ['duct_sizer','vav_sizer','fan_static','pipe_sizer','heating_loop','louver_sizer','unit_converter','psychrometric'];
+        var visitedAll = allTools.every(function(t) { return !!visited[t]; });
+        if (visitedAll) unlock('pw_tool_tourist');
+      }
+    } catch (e) {}
+  }
+
+  function trackSubtool(name) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_subtools') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(name) < 0) list.push(name);
+      localStorage.setItem(PREFIX + '_subtools', JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function trackEggFound(query) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_eggs_found') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(query) < 0) list.push(query);
+      localStorage.setItem(PREFIX + '_eggs_found', JSON.stringify(list));
+      unlock('pw_egg_found');
+    } catch (e) {}
+  }
+
+  function trackNameChange() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_nameChanges') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_nameChanges', '' + count);
+      if (count >= 3) unlock('pw_identity_crisis');
+    } catch (e) {}
+  }
+
+  function trackSearch() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_searchCount') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_searchCount', '' + count);
+      if (count >= 100) unlock('pw_search_party');
+    } catch (e) {}
+  }
+
+  function trackDayVisit() {
+    try {
+      var today = new Date().toISOString().slice(0, 10);
+      var raw = localStorage.getItem(PREFIX + '_dayVisits') || '[]';
+      var days = JSON.parse(raw);
+      if (days[days.length - 1] !== today) {
+        days.push(today);
+        if (days.length > 14) days = days.slice(-14);
+        localStorage.setItem(PREFIX + '_dayVisits', JSON.stringify(days));
+      }
+      if (days.length >= 7) {
+        var last7 = days.slice(-7);
+        var streak = true;
+        for (var i = 1; i < last7.length; i++) {
+          var prev = new Date(last7[i-1]); var curr = new Date(last7[i]);
+          var diff = (curr - prev) / 86400000;
+          if (diff !== 1) { streak = false; break; }
+        }
+        if (streak) unlock('pw_seven_day_streak');
+      }
+    } catch (e) {}
+  }
+
+  function checkPageLoad() {
+    try {
+      var hr = new Date().getHours();
+      if (hr >= 22 || hr < 2) unlock('pw_night_owl');
+      if (hr >= 0 && hr < 4) unlock('pw_deadline_eng');
+      if (hr >= 4 && hr < 6) unlock('pw_early_bird');
+    } catch (e) {}
+
+    trackDayVisit();
+
+    try {
+      var path = location.pathname.replace(/\\/g, '/').split('/').pop() || '';
+      if (/Remedy_Home/i.test(path))            trackPageVisit('home');
+      else if (/Remedy_Tools/i.test(path))      trackPageVisit('tools');
+      else if (/Training_Library/i.test(path))  trackPageVisit('docs');
+      else if (/Remedy_Profile/i.test(path))    { trackPageVisit('profile'); unlock('pw_profile_visitor'); }
+      else if (/Duct_Sizer/i.test(path))        { trackPageVisit('duct_sizer');    trackSubtool('Duct_Sizer'); }
+      else if (/VAV_Sizer/i.test(path))         { trackPageVisit('vav_sizer');     trackSubtool('VAV_Sizer'); }
+      else if (/Fan_Static/i.test(path))        { trackPageVisit('fan_static');    trackSubtool('Fan_Static'); }
+      else if (/pipe-sizer/i.test(path))        { trackPageVisit('pipe_sizer');    trackSubtool('pipe_sizer'); }
+      else if (/Heating_Loop/i.test(path))      { trackPageVisit('heating_loop');  trackSubtool('Heating_Loop'); }
+      else if (/Louver_Sizer/i.test(path))      { trackPageVisit('louver_sizer');  trackSubtool('Louver_Sizer'); }
+      else if (/Unit_Converter/i.test(path))    { trackPageVisit('unit_converter');trackSubtool('Unit_Converter'); }
+      else if (/Psychrometric/i.test(path))     { trackPageVisit('psychrometric'); trackSubtool('Psychrometric'); }
+    } catch (e) {}
+
+    try {
+      if (typeof __favsAPI !== 'undefined') {
+        var favs = __favsAPI.load();
+        if (favs.length >= 5) unlock('pw_bookworm');
+      }
+    } catch (e) {}
+
+    try {
+      if (localStorage.getItem('remedy_egg_fresh_air')) unlock('pw_fresh_air');
+      if (localStorage.getItem('remedy_egg_deadline_date')) unlock('pw_deadline_eng');
+    } catch (e) {}
+  }
+
+  return {
+    REGISTRY: REGISTRY,
+    unlock: unlock,
+    isUnlocked: isUnlocked,
+    getAll: getAll,
+    getUnlockedCount: getUnlockedCount,
+    trackPageVisit: trackPageVisit,
+    trackSubtool: trackSubtool,
+    trackEggFound: trackEggFound,
+    trackNameChange: trackNameChange,
+    trackSearch: trackSearch,
+    trackDayVisit: trackDayVisit,
+    checkPageLoad: checkPageLoad
+  };
+})();
+
+
+// All values direct from NPC 2020 Tables 2.4.9.3 and 2.6.3.2.-A.
+// dfu = drainage fixture units (Table 2.4.9.3)
+// nps = minimum nominal pipe size of fixture outlet pipe (Table 2.4.9.3)
+// priv / pub: { c: cold WSFU, h: hot WSFU, t: total combined WSFU } per Table 2.6.3.2.-A
+// special: 'wcDFV' or 'urDFV' → use cumulative Table 2.6.3.2.-C / -B for WSFU
+const FIXTURES = [
+  { cat: 'Bathroom Groups' },
+  { name: 'Bathroom group, ≤6 LPF flush tank',     nps:'—',  dfu: 6, priv:{c:2.7,h:1.5,t:3.6}, pub:null },
+  { name: 'Bathroom group, >6 LPF flush tank',     nps:'—',  dfu: 6, priv:{c:4,  h:3,  t:6  }, pub:null },
+  { name: 'Bathroom group, direct flush valve',    nps:'—',  dfu: 8, priv:null, pub:null, dfvNote:true },
+
+  { cat: 'Toilets & Urinals' },
+  { name: 'Water closet, ≤6 LPF flush tank',           nps:'3',  dfu: 4, priv:{c:2.2,h:0,t:2.2}, pub:{c:2.2,h:0,t:2.2} },
+  { name: 'Water closet, >6 LPF flush tank',           nps:'3',  dfu: 4, priv:{c:3,  h:0,t:3  }, pub:{c:5,  h:0,t:5  } },
+  { name: 'Water closet, direct flush valve',          nps:'3',  dfu: 6, special:'wcDFV' },
+  { name: 'Urinal, direct flush valve',                nps:'2',  dfu: 4, special:'urDFV' },
+  { name: 'Urinal, flush tank',                        nps:'2',  dfu: 2, priv:{c:3,  h:0,t:3  }, pub:{c:3,  h:0,t:3  } },
+  { name: 'Urinal, self-closing metering valve',       nps:'½',  dfu: 2, priv:{c:2,  h:0,t:2  }, pub:{c:4,  h:0,t:4  } },
+  { name: 'Urinal, pedestal / siphon-jet / blowout',   nps:'2',  dfu: 4, priv:null, pub:null },
+  { name: 'Urinal, stall / washout',                   nps:'2',  dfu: 2, priv:null, pub:null },
+  { name: 'Urinal, wall washout',                      nps:'1½', dfu: 1.5, priv:null, pub:null },
+  { name: 'Urinal, wall (other)',                      nps:'2',  dfu: 3, priv:null, pub:null },
+
+  { cat: 'Bathing & Showers' },
+  { name: 'Bathtub (with or without shower head)',     nps:'1½', dfu: 1.5, priv:{c:1,  h:1,  t:1.4}, pub:{c:3,h:3,t:4} },
+  { name: 'Bathtub with NPS ¾ spout',                  nps:'1½', dfu: 1.5, priv:{c:7.5,h:7.5,t:10 }, pub:{c:7.5,h:7.5,t:10} },
+  { name: 'Bath: foot, sitz or slab',                  nps:'1½', dfu: 1.5, priv:null, pub:null },
+  { name: 'Bidet',                                     nps:'1¼', dfu: 1,   priv:{c:1.5,h:1.5,t:2 }, pub:null },
+  { name: 'Shower drain — <9.5 LPM (per head)',        nps:'1½', dfu: 1.5, priv:{c:1,  h:1,  t:1.4}, pub:{c:3,h:3,t:4} },
+  { name: 'Shower drain — 9.5–20 LPM (per head)',      nps:'2',  dfu: 3,   priv:{c:1.5,h:1.5,t:2 }, pub:{c:3,h:3,t:4} },
+  { name: 'Shower drain — >20 LPM (per head)',         nps:'3',  dfu: 6,   priv:{c:1.5,h:1.5,t:2 }, pub:{c:3,h:3,t:4} },
+
+  { cat: 'Lavatories' },
+  { name: 'Lavatory ≤8.3 LPM',                         nps:'1¼', dfu: 1,   priv:{c:0.5, h:0.5, t:0.7}, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Lavatory >8.3 LPM',                         nps:'1¼', dfu: 1.5, priv:{c:0.75,h:0.75,t:1  }, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Lavatory, barber or beauty parlor',         nps:'1½', dfu: 1.5, priv:null, pub:null },
+  { name: 'Lavatory, dental',                          nps:'1¼', dfu: 1,   priv:null, pub:{c:1, h:0, t:1} },
+
+  { cat: 'Sinks' },
+  { name: 'Sink, kitchen domestic ≤8.3 LPM',           nps:'1½', dfu: 1.5, priv:{c:1,   h:1,   t:1.4}, pub:{c:1,h:1,t:1.4} },
+  { name: 'Sink, kitchen domestic >8.3 LPM',           nps:'1½', dfu: 1.5, priv:{c:1.5, h:1.5, t:2 }, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Sink, kitchen commercial (per faucet)',     nps:'1½', dfu: 1.5, priv:null, pub:{c:3,h:3,t:4} },
+  { name: 'Sink, bar',                                 nps:'1½', dfu: 1.5, priv:{c:0.75,h:0.75,t:1}, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Sink, laundry (1 or 2 compartments)',       nps:'1½', dfu: 1.5, priv:{c:1,   h:1,   t:1.4}, pub:{c:1,h:1,t:1.4} },
+  { name: 'Sink, laboratory',                          nps:'1½', dfu: 1.5, priv:null, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Sink, service or mop basin',                nps:'1½', dfu: 1.5, priv:null, pub:{c:2.25,h:2.25,t:3} },
+  { name: 'Sink, clinic service faucet',               nps:'1½', dfu: 1.5, priv:null, pub:{c:2.25,h:2.25,t:3} },
+  { name: 'Sink, clinic service w/ direct flush valve',nps:'1½', dfu: 3,   priv:null, pub:{c:6, h:0, t:6} },
+  { name: 'Sink, washup (per faucet)',                 nps:'1½', dfu: 1.5, priv:null, pub:{c:1.5,h:1.5,t:2} },
+  { name: 'Sink, other (NPS 2 trap)',                  nps:'1½', dfu: 2,   priv:null, pub:null },
+  { name: 'Sink, other (NPS 3 trap)',                  nps:'1½', dfu: 3,   priv:null, pub:null },
+
+  { cat: 'Laundry' },
+  { name: 'Clothes washer 3.5 kg (≥NPS 2 trap)',       nps:'2',  dfu: 2,   priv:{c:1,h:1,t:1.4}, pub:{c:2.25,h:2.25,t:3} },
+  { name: 'Clothes washer 6.8 kg (≥NPS 2 trap)',       nps:'2',  dfu: 2,   priv:null, pub:{c:3,h:3,t:4} },
+  { name: 'Clothes washer, commercial',                nps:'2',  dfu: 2,   priv:null, pub:null },
+  { name: 'Laundry tray (1 or 2 comp, common trap)',   nps:'1½', dfu: 1.5, priv:null, pub:null },
+  { name: 'Laundry tray (3 compartments)',             nps:'1½', dfu: 2,   priv:null, pub:null },
+
+  { cat: 'Other Fixtures' },
+  { name: 'Drinking fountain / water cooler',          nps:'1¼', dfu: 0.5, priv:null, pub:{c:0.25,h:0,t:0.25} },
+  { name: 'Floor drain (NPS 2 trap)',                  nps:'2',  dfu: 2,   priv:null, pub:null },
+  { name: 'Floor drain (NPS 3 trap)',                  nps:'2',  dfu: 3,   priv:null, pub:null },
+  { name: 'Hose bibb, ½"',                             nps:'—',  dfu: 0,   priv:{c:2.5,h:0,t:2.5}, pub:{c:2.5,h:0,t:2.5} },
+  { name: 'Hose bibb, ¾"',                             nps:'—',  dfu: 0,   priv:{c:3,  h:0,t:3  }, pub:{c:6,h:0,t:6} },
+  { name: 'Hose bibb, combination hot + cold ½"',      nps:'—',  dfu: 0,   priv:{c:1.9,h:1.9,t:2.5}, pub:{c:1.9,h:1.9,t:2.5} },
+  { name: 'Dishwasher, domestic',                      nps:'1½', dfu: 1.5, priv:{c:0,h:1.4,t:1.4}, pub:null },
+  { name: 'Dishwasher, commercial',                    nps:'2',  dfu: 3,   priv:null, pub:null },
+  { name: 'Dental unit / cuspidor',                    nps:'1¼', dfu: 1,   priv:null, pub:{c:1,h:0,t:1} },
+  { name: 'Bedpan washer',                             nps:'—',  dfu: 0,   priv:null, pub:{c:7.5,h:7.5,t:10} },
+  { name: 'Autopsy table',                             nps:'1½', dfu: 2,   priv:null, pub:null },
+  { name: 'Beer cabinet',                              nps:'1½', dfu: 1.5, priv:null, pub:null },
+  { name: 'Garbage grinder, commercial',               nps:'2',  dfu: 3,   priv:null, pub:null },
+  { name: 'Icebox',                                    nps:'1¼', dfu: 1,   priv:null, pub:null },
+  { name: 'Macerating toilet system',                  nps:'¾',  dfu: 4,   priv:null, pub:null },
+  { name: 'Potato peeler',                             nps:'2',  dfu: 3,   priv:null, pub:null }
+];
+
+// Hunter's curve: WSFU → gpm (flush-tank predominant). Same as prior tool.
+const HUNTER_TANK = [
+  [1,3],[2,5],[3,6.5],[4,8],[5,9.4],[6,10.7],[8,12.8],[10,15],[15,19.8],[20,23.4],
+  [25,26.9],[30,30],[35,32.8],[40,35.4],[45,38],[50,40.5],[60,45.4],[70,49.5],[80,53],
+  [90,55.5],[100,58],[120,62],[140,65],[160,68],[180,71],[200,74],[225,78],[250,82],
+  [275,85],[300,88],[400,98],[500,108],[750,128],[1000,145],[1500,175],[2000,200],[3000,250]
+];
+function hunterGPM(wsfu) {
+  if (wsfu <= 0) return 0;
+  const t = HUNTER_TANK;
+  if (wsfu <= t[0][0]) return t[0][1] * (wsfu / t[0][0]);
+  for (let i = 0; i < t.length - 1; i++) {
+    if (wsfu >= t[i][0] && wsfu <= t[i+1][0]) {
+      const frac = (wsfu - t[i][0]) / (t[i+1][0] - t[i][0]);
+      return t[i][1] + frac * (t[i+1][1] - t[i][1]);
+    }
+  }
+  return t[t.length-1][1];
+}
+
+// NPC 2020 Table 2.6.3.2.-B (Urinals with direct flush valves, cumulative).
+function urinalDFVCumulative(n) {
+  if (n <= 0) return 0;
+  if (n === 1) return 20;
+  if (n === 2) return 35;
+  if (n === 3) return 45;
+  if (n === 4) return 53;
+  return 58 + 5 * (n - 5);   // 5+ valves: 58 + 5 per additional
+}
+
+// NPC 2020 Table 2.6.3.2.-C (Water closets with direct flush valves, cumulative).
+// Beyond 4 valves the per-valve increment splits between public (10) and private (6).
+function waterClosetDFVCumulative(n, mode) {
+  if (n <= 0) return 0;
+  if (n === 1) return 40;
+  if (n === 2) return 70;
+  if (n === 3) return 90;
+  if (n === 4) return 105;
+  const extra = n - 5;
+  return (mode === 'pub') ? (115 + 10 * extra) : (111 + 6 * extra);
+}
+
+// NPC 2020 Table 2.4.10.6.-B (branches) and 2.4.10.6.-C (building drains / sewers).
+const BRANCH_CAP = [
+  ['1¼',  2],   ['1½', 3],   ['2', 6],
+  ['3',   27],  ['4',  180], ['5', 390],
+  ['6',   700], ['8',  1600],['10',2500], ['12',3900]
+];
+const BLDG_DRAIN_CAP = {
+  '1:400': [['3',null],['4',null],['5',null],['6',null],['8',null],['10',null],['12',2240],['15',4800]],
+  '1:200': [['3',null],['4',null],['5',null],['6',null],['8',1400],['10',2500],['12',3900],['15',7000]],
+  '1:133': [['3',null],['4',null],['5',380],['6',600],['8',1500],['10',2700],['12',4500],['15',9300]],
+  '1:100': [['3',null],['4',180],['5',390],['6',700],['8',1600],['10',3000],['12',5400],['15',10400]],
+  '1:50':  [['3',27],  ['4',240],['5',480],['6',840],['8',2250],['10',4500],['12',8300],['15',16300]],
+  '1:25':  [['3',36],  ['4',300],['5',670],['6',1300],['8',3370],['10',6500],['12',13000],['15',22500]]
+};
+
+let mode = 'priv';
+const counts = {};
+
+const tbody = document.getElementById('fixBody');
+
+function buildTable() {
+  tbody.innerHTML = '';
+  FIXTURES.forEach((f, idx) => {
+    if (f.cat) {
+      const tr = document.createElement('tr');
+      tr.className = 'cat-row';
+      tr.innerHTML = `<td colspan="7">${f.cat}</td>`;
+      tbody.appendChild(tr);
+      return;
+    }
+
+    let cTxt, hTxt, tTxt;
+    if (f.special === 'wcDFV') {
+      cTxt = '<i>per Table C</i>'; hTxt = '—'; tTxt = '<i>per Table C</i>';
+    } else if (f.special === 'urDFV') {
+      cTxt = '<i>per Table B</i>'; hTxt = '—'; tTxt = '<i>per Table B</i>';
+    } else if (f.dfvNote) {
+      cTxt = hTxt = tTxt = '<i>use DFV rows</i>';
+    } else {
+      const d = f[mode];
+      if (!d) { cTxt = hTxt = tTxt = '—'; }
+      else { cTxt = d.c; hTxt = d.h; tTxt = d.t; }
+    }
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${f.name}</td>
+      <td class="num"><input type="number" min="0" step="1" value="${counts[idx]||0}" data-idx="${idx}"></td>
+      <td class="num dim">${f.nps}</td>
+      <td class="num unit">${f.dfu}</td>
+      <td class="num unit">${cTxt}</td>
+      <td class="num unit">${hTxt}</td>
+      <td class="num unit">${tTxt}</td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(i => i.addEventListener('input', onCount));
+}
+
+function onCount(e) {
+  const idx = parseInt(e.target.dataset.idx, 10);
+  counts[idx] = Math.max(0, parseInt(e.target.value, 10) || 0);
+  recompute();
+}
+
+function recompute() {
+  let dfu = 0, cold = 0, hot = 0, totalCombined = 0, total = 0;
+  let wcDFVCount = 0, urDFVCount = 0;
+
+  FIXTURES.forEach((f, idx) => {
+    if (f.cat) return;
+    const n = counts[idx] || 0;
+    if (!n) return;
+
+    dfu += n * f.dfu;
+    total += n;
+
+    if (f.special === 'wcDFV')      { wcDFVCount += n; return; }
+    if (f.special === 'urDFV')      { urDFVCount += n; return; }
+    if (f.dfvNote)                  { return; }   // bathroom group DFV - WSFU comes from DFV rows
+
+    const d = f[mode];
+    if (!d) return;
+    cold          += n * d.c;
+    hot           += n * d.h;
+    totalCombined += n * d.t;
+  });
+
+  // Direct-flush-valve cumulative contributions per NPC Tables 2.6.3.2.-B and -C.
+  // These add to cold and to total-combined (no hot component).
+  const wcWSFU = waterClosetDFVCumulative(wcDFVCount, mode);
+  const urWSFU = urinalDFVCumulative(urDFVCount);
+  cold          += wcWSFU + urWSFU;
+  totalCombined += wcWSFU + urWSFU;
+
+  document.getElementById('hCount').textContent = total + (total === 1 ? ' fixture' : ' fixtures');
+  document.getElementById('totDfu').textContent  = dfu;
+  document.getElementById('totCold').textContent = cold.toFixed(1);
+  document.getElementById('totHot').textContent  = hot.toFixed(1);
+  document.getElementById('totWsfu').textContent = totalCombined.toFixed(1);
+  document.getElementById('dfuBig').textContent  = dfu;
+  document.getElementById('dfuMode').textContent = (mode === 'priv' ? 'Private use' : 'Public use') + ' · NPC 2020';
+
+  const gC = hunterGPM(cold);
+  const gH = hunterGPM(hot);
+  const gT = hunterGPM(totalCombined);
+  document.getElementById('gpmCold').textContent = (cold > 0          ? gC.toFixed(1) : '—') + ' gpm';
+  document.getElementById('gpmHot').textContent  = (hot  > 0          ? gH.toFixed(1) : '—') + ' gpm';
+  document.getElementById('gpmTot').textContent  = (totalCombined > 0 ? gT.toFixed(1) : '—') + ' gpm';
+  document.getElementById('lpsCold').textContent = (cold > 0          ? (gC * 0.0630902).toFixed(2) : '—') + ' L/s';
+  document.getElementById('lpsHot').textContent  = (hot  > 0          ? (gH * 0.0630902).toFixed(2) : '—') + ' L/s';
+  document.getElementById('lpsTot').textContent  = (totalCombined > 0 ? (gT * 0.0630902).toFixed(2) : '—') + ' L/s';
+
+  renderDrainSize(dfu);
+}
+
+function renderDrainSize(dfu) {
+  const kind = document.getElementById('drainKind').value;
+  const slope = document.getElementById('drainSlope').value;
+
+  // Slope dropdown only applies to building drain/sewer (Table 2.4.10.6.-C).
+  document.getElementById('drainSlope').disabled = (kind === 'branch');
+  document.getElementById('slopeLbl').style.opacity = (kind === 'branch') ? 0.35 : 1;
+
+  const colHdr = document.getElementById('pipeColHdr');
+  colHdr.textContent = (kind === 'branch')
+    ? 'Branch (Table 2.4.10.6.-B)'
+    : `Building drain / sewer @ ${slope} (Table 2.4.10.6.-C)`;
+
+  const rows = (kind === 'branch') ? BRANCH_CAP : BLDG_DRAIN_CAP[slope];
+  const pb = document.getElementById('pipeBody');
+  pb.innerHTML = '';
+
+  if (dfu === 0) {
+    pb.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--grey); padding:10px;">Enter fixture counts to size the drain.</td></tr>';
+    return;
+  }
+
+  let matched = false;
+  rows.forEach(([size, cap]) => {
+    if (cap == null) {
+      pb.innerHTML += `<tr><td>${size}"</td><td>n/a</td><td style="color:var(--grey-l);">Not permitted at this slope</td></tr>`;
+      return;
+    }
+    const isMatch = !matched && cap >= dfu;
+    if (isMatch) matched = true;
+    const status = isMatch ? 'Use this size' : (cap < dfu ? 'Undersized' : 'Oversized');
+    const cls = isMatch ? 'match' : '';
+    pb.innerHTML += `<tr><td class="${cls}">${size}"</td><td class="${cls}">${cap}</td><td class="${cls}">${status}</td></tr>`;
+  });
+  if (!matched) {
+    pb.innerHTML += `<tr><td colspan="3" style="color: var(--red, #B00000); font-weight:bold; padding:10px;">DFU load exceeds the largest tabulated size at this slope — increase slope or split the run.</td></tr>`;
+  }
+}
+
+document.getElementById('mPriv').addEventListener('click', () => { mode='priv'; document.getElementById('mPriv').classList.add('active'); document.getElementById('mPub').classList.remove('active'); buildTable(); recompute(); });
+document.getElementById('mPub' ).addEventListener('click', () => { mode='pub';  document.getElementById('mPub' ).classList.add('active'); document.getElementById('mPriv').classList.remove('active'); buildTable(); recompute(); });
+document.getElementById('resetBtn').addEventListener('click', () => { Object.keys(counts).forEach(k => delete counts[k]); buildTable(); recompute(); });
+document.getElementById('drainKind').addEventListener('change', recompute);
+document.getElementById('drainSlope').addEventListener('change', recompute);
+
+buildTable();
+recompute();
+
+__achievementsAPI.checkPageLoad();
+
+/* ── Greeting + Profile Link ── */
+(function() {
+  var NAME_KEY = 'remedy.userName.v1';
+  function getName() { return (localStorage.getItem(NAME_KEY) || '').trim(); }
+  function paintGreeting() {
+    var el = document.getElementById('greet-text');
+    if (!el) return;
+    var n = getName();
+    el.innerHTML = n ? 'Welcome, <strong>' + n + '</strong>.' : 'Welcome.';
+  }
+  paintGreeting();
+  var pencil = document.getElementById('greet-edit');
+  if (pencil) {
+    pencil.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html';
+    });
+  }
+  window.addEventListener('storage', function(e) {
+    if (e && e.key === NAME_KEY) paintGreeting();
+  });
+})();
+
+</script>
+<!-- ============ REMEDY FEEDBACK WIDGET ============ -->
+<style>
+  #remedy-fb-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+    background: var(--orange); color: var(--on-dark); border: none;
+    padding: 12px 18px; border-radius: 28px;
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif; font-size: 13px;
+    font-weight: bold; letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    cursor: pointer; transition: background 0.15s, transform 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-fab:hover { background: var(--orange-d); transform: translateY(-2px); }
+  #remedy-fb-fab .fb-icon { font-size: 16px; }
+  #remedy-fb-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(43,43,43,0.55); z-index: 9100;
+    display: none; align-items: center; justify-content: center;
+  }
+  #remedy-fb-overlay.open { display: flex; }
+  #remedy-fb-modal {
+    background: var(--white); width: 480px; max-width: 92vw; max-height: 88vh;
+    overflow-y: auto;
+    border-top: 5px solid var(--orange);
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
+    color: var(--ink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }
+  #remedy-fb-modal .fb-head {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  #remedy-fb-modal .fb-head h2 { margin: 0; font-size: 18px; color: var(--ink); }
+  #remedy-fb-modal .fb-head .fb-x {
+    background: transparent; border: none; font-size: 24px;
+    cursor: pointer; color: var(--grey-l); line-height: 1; padding: 0 4px;
+  }
+  #remedy-fb-modal .fb-head .fb-x:hover { color: var(--bad); }
+  #remedy-fb-modal .fb-body { padding: 16px 20px; }
+  #remedy-fb-modal .fb-row { margin-bottom: 14px; }
+  #remedy-fb-modal label {
+    display: block; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange-d); margin-bottom: 4px;
+  }
+  #remedy-fb-modal .fb-page-display {
+    font-size: 13px; color: var(--ink); font-weight: bold;
+    padding: 6px 10px; background: var(--cream);
+    border-left: 3px solid var(--orange);
+  }
+  #remedy-fb-modal select,
+  #remedy-fb-modal textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    border: 1px solid var(--border); padding: 7px 9px;
+    background: var(--white); color: var(--ink);
+    box-sizing: border-box;
+  }
+  #remedy-fb-modal textarea { min-height: 110px; resize: vertical; }
+  #remedy-fb-modal select:focus,
+  #remedy-fb-modal textarea:focus { outline: 2px solid var(--orange); outline-offset: -1px; }
+  #remedy-fb-modal .fb-screenshot-note {
+    background: var(--cream); border-left: 3px solid var(--lime);
+    padding: 8px 10px; font-size: 11px; color: var(--grey);
+    line-height: 1.4;
+  }
+  #remedy-fb-modal .fb-screenshot-note b { color: var(--orange-d); }
+  #remedy-fb-modal .fb-foot {
+    padding: 14px 20px; background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot button {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    padding: 8px 16px; border: none; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel {
+    background: var(--white); color: var(--ink); border: 1px solid var(--border);
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel:hover { background: var(--bg); }
+  #remedy-fb-modal .fb-foot .fb-send {
+    background: var(--lime); color: var(--on-dark);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot .fb-send:hover { background: var(--lime-d); }
+  #remedy-fb-modal .fb-foot .fb-send:disabled {
+    background: var(--border); cursor: not-allowed; opacity: 0.85;
+  }
+  #remedy-fb-modal .fb-spinner {
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: remedy-fb-spin 0.7s linear infinite;
+    display: none;
+  }
+  #remedy-fb-modal .fb-foot .fb-send.is-sending .fb-spinner { display: inline-block; }
+  @keyframes remedy-fb-spin { to { transform: rotate(360deg); } }
+  #remedy-fb-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 16px; font-family: Calibri,sans-serif; font-size: 13px;
+    border-left: 4px solid var(--lime); z-index: 9200;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    max-width: 360px;
+  }
+  #remedy-fb-toast.show { opacity: 1; transform: translateY(0); }
+  @media print { #remedy-fb-fab, #remedy-fb-overlay, #remedy-fb-toast { display: none !important; } }
+</style>
+
+<button id="remedy-fb-fab" type="button" aria-label="Send feedback">
+  <span class="fb-icon">&#9993;</span><span>Feedback</span>
+</button>
+
+<div id="remedy-fb-overlay" role="dialog" aria-modal="true" aria-labelledby="remedy-fb-title">
+  <div id="remedy-fb-modal">
+    <div class="fb-head">
+      <h2 id="remedy-fb-title">Send Feedback</h2>
+      <button class="fb-x" id="remedy-fb-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="fb-body">
+      <div class="fb-row">
+        <label>Page</label>
+        <div class="fb-page-display" id="remedy-fb-page">&mdash;</div>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-type">Type</label>
+        <select id="remedy-fb-type">
+          <option>Bug</option>
+          <option>Suggestion</option>
+          <option>Question</option>
+          <option>General</option>
+        </select>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-comment">Comments</label>
+        <textarea id="remedy-fb-comment" placeholder="What happened, what you expected, or what you'd like added&hellip;"></textarea>
+      </div>
+      <div class="fb-row">
+        <div class="fb-screenshot-note">
+          <b>Need to share a screenshot?</b> Email it separately to Colson and reference this page name &mdash; the page name is included automatically with every feedback message.
+        </div>
+      </div>
+    </div>
+    <div class="fb-foot">
+      <button class="fb-cancel" id="remedy-fb-cancel" type="button">Cancel</button>
+      <button class="fb-send" id="remedy-fb-send" type="button">
+        <span class="fb-spinner"></span>
+        <span class="fb-send-label">Send Feedback</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="remedy-fb-toast"></div>
+
+<script>
+(function() {
+  'use strict';
+  var ACCESS_KEY = 'aab66b178e7f443592bd3c906d930053';
+  var ENDPOINT = 'https://formly.email/submit';
+
+  var fab = document.getElementById('remedy-fb-fab');
+  var overlay = document.getElementById('remedy-fb-overlay');
+  var closeBtn = document.getElementById('remedy-fb-close');
+  var cancelBtn = document.getElementById('remedy-fb-cancel');
+  var sendBtn = document.getElementById('remedy-fb-send');
+  var sendLabel = sendBtn.querySelector('.fb-send-label');
+  var typeSel = document.getElementById('remedy-fb-type');
+  var commentEl = document.getElementById('remedy-fb-comment');
+  var pageEl = document.getElementById('remedy-fb-page');
+  var toastEl = document.getElementById('remedy-fb-toast');
+
+  function getPageLabel() {
+    var t = (document.title || '').trim();
+    if (t) return t;
+    var p = location.pathname.split('/').pop() || 'Unknown';
+    return p.replace(/\.html?$/i, '').replace(/_/g, ' ');
+  }
+  function lsGet(k) {
+    try { return (localStorage.getItem(k) || '').trim(); } catch (_) { return ''; }
+  }
+  function getUserName() {
+    return lsGet('remedy.userName.v1') || lsGet('remedy.user.name');
+  }
+  function getUserEmail() {
+    return lsGet('remedy.email.v1') || lsGet('remedy.user.email') || lsGet('remedy.userEmail.v1');
+  }
+
+  function toast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.style.borderLeftColor = isError ? '#B00000' : '#99a668';
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 3500);
+  }
+
+  function openModal() {
+    pageEl.textContent = getPageLabel();
+    overlay.classList.add('open');
+    setTimeout(function(){ commentEl.focus(); }, 30);
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  fab.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+
+  function setSending(isSending) {
+    sendBtn.disabled = isSending;
+    sendBtn.classList.toggle('is-sending', isSending);
+    sendLabel.textContent = isSending ? 'Sending…' : 'Send Feedback';
+    cancelBtn.disabled = isSending;
+  }
+
+  sendBtn.addEventListener('click', function() {
+    var comment = (commentEl.value || '').trim();
+    if (!comment) {
+      toast('Please add a comment before sending.', true);
+      commentEl.focus();
+      return;
+    }
+
+    var name = getUserName() || '(not set)';
+    var email = getUserEmail() || '(not set in profile)';
+    var page = getPageLabel();
+    var type = typeSel.value;
+    var when = new Date().toLocaleString();
+
+    var fd = new FormData();
+    fd.append('access_key', ACCESS_KEY);
+    fd.append('subject', 'Remedy Tools Feedback: ' + type + ' — ' + page);
+    fd.append('from_name', 'Remedy Tools Feedback');
+    if (email && email.indexOf('@') > 0) fd.append('replyto', email);
+    fd.append('Tester', name);
+    fd.append('Tester Email', email);
+    fd.append('Page', page);
+    fd.append('URL', location.href);
+    fd.append('Type', type);
+    fd.append('Submitted', when);
+    fd.append('Comments', comment);
+
+    setSending(true);
+
+    fetch(ENDPOINT, { method: 'POST', body: fd })
+      .then(function(res) { return res.json().then(function(json){ return { ok: res.ok, json: json }; }); })
+      .then(function(r) {
+        if (r.ok && r.json && r.json.success) {
+          toast('Feedback sent — thanks!');
+          setTimeout(function(){
+            closeModal();
+            commentEl.value = '';
+            typeSel.selectedIndex = 0;
+          }, 400);
+        } else {
+          var msg = (r.json && r.json.message) ? r.json.message : 'Server rejected the submission.';
+          toast('Could not send: ' + msg, true);
+        }
+      })
+      .catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Network error.';
+        toast('Send failed: ' + msg + ' — check your connection or firewall.', true);
+      })
+      .finally(function() {
+        setSending(false);
+      });
+  });
+})();
+</script>
+<!-- ============ /REMEDY FEEDBACK WIDGET ============ -->
+
+</body>
+</html>

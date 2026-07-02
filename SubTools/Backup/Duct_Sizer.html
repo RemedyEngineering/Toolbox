@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remedy Engineering — Ductwork Sizing Calculator</title>
+<style>
+  :root {
+    --charcoal:#404040; --orange:#F06020; --orange-d:#C04000;
+    --amber:#F0A010; --lime:#A4C748; --lime-d:#7FA630;
+    --pale-or:#FBE5D6; --pale-lime:#EAF1D7; --key-lime:#D6E5A8;
+    --cream:#FFF4E0; --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F7F7F7;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, "Segoe UI", Tahoma, sans-serif;
+    color: var(--charcoal);
+    background: var(--bg);
+    font-size: 14px;
+  }
+
+  /* ---- Header ---- */
+  .header {
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header img { height: 52px; }
+  .header-divider { width:1px; height:42px; background:var(--border); }
+  .header-titles { line-height: 1.1; }
+  .header .eyebrow {
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange-d); margin-bottom: 3px;
+  }
+  .header h1 {
+    margin: 0; font-size: 24px; font-weight: bold;
+    color: var(--charcoal); letter-spacing: 0.3px;
+  }
+  .back-link {
+    font-size: 12px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; text-decoration: none;
+    color: var(--orange-d); border: 2px solid var(--orange);
+    padding: 6px 12px; white-space: nowrap;
+    transition: background-color 0.1s ease, color 0.1s ease;
+  }
+  .back-link:hover { background: var(--orange); color: #fff; }
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip {
+    background: var(--charcoal); color: var(--white);
+    font-style: italic; font-weight: bold; font-size: 13px; padding: 6px 24px;
+  }
+
+  /* ---- Layout ---- */
+  .container {
+    max-width: 1280px; margin: 16px auto; padding: 0 16px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 2px; margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card-head {
+    background: var(--charcoal); color: var(--white); font-weight: bold;
+    font-size: 11px; padding: 9px 14px; letter-spacing: 2px;
+    text-transform: uppercase; border-bottom: 3px solid var(--orange);
+  }
+  .card-note { font-size: 12px; font-style: italic; color: var(--grey); padding: 8px 12px 0; }
+  .card-body { padding: 8px 12px 12px; }
+
+  /* ---- Mode selector ---- */
+  .mode-row {
+    display: grid; grid-template-columns: 1.5fr 2fr; gap: 6px;
+    align-items: center; padding: 4px 0 10px;
+    border-bottom: 1px dashed var(--border); margin-bottom: 6px;
+  }
+  .mode-row label { font-weight: bold; color: var(--charcoal); }
+  .mode-row select {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); padding: 6px 6px; cursor: pointer;
+  }
+
+  /* ---- Input rows ---- */
+  .row {
+    display: grid;
+    grid-template-columns: 26px 1.5fr 1.3fr 110px;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 0;
+  }
+  .row label { font-weight: bold; color: var(--charcoal); }
+  .row .tag {
+    font-size: 10px; font-weight: normal;
+    color: var(--grey); font-style: italic; margin-left: 6px;
+  }
+  .row input[type="number"] {
+    font-family: inherit; font-size: 14px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); text-align: center;
+    padding: 5px 6px; width: 100%; outline: none; min-width: 0;
+  }
+  .row input:focus { border-color: var(--orange); }
+  .swap-btn {
+    background: var(--cream); color: var(--orange-d);
+    border: 1px solid var(--border); padding: 5px 4px;
+    cursor: pointer; font-family: inherit; font-size: 12px;
+    font-weight: bold; width: 100%; white-space: nowrap;
+  }
+  .swap-btn:hover {
+    background: var(--orange); color: var(--white); border-color: var(--orange);
+  }
+
+  /* ---- Computed row look ---- */
+  .row.computed > input[type="number"] {
+    background: var(--key-lime);
+    color: var(--charcoal);
+    font-weight: bold;
+  }
+
+  /* ---- Driver checkbox ---- */
+  .driver-cb {
+    width: 18px; height: 18px; cursor: pointer;
+    accent-color: var(--orange); justify-self: center; margin: 0;
+  }
+  .driver-cb:disabled { cursor: not-allowed; opacity: 0.55; }
+
+  /* ---- Duct Size combined row ---- */
+  .duct-pair {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto 1fr;
+    gap: 5px;
+    align-items: center;
+  }
+  .duct-pair input[type="number"] {
+    font-family: inherit; font-size: 14px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); text-align: center;
+    padding: 5px 4px; outline: none; width: 100%; min-width: 0;
+  }
+  .duct-pair input[type="number"]:focus { border-color: var(--orange); }
+  .duct-pair input.computed-input {
+    background: var(--key-lime);
+    color: var(--charcoal);
+  }
+  .duct-pair .mini-cb {
+    width: 16px; height: 16px; margin: 0;
+    accent-color: var(--orange); cursor: pointer;
+  }
+  .duct-pair .dim-x {
+    color: var(--grey); font-weight: bold;
+    text-align: center; padding: 0 1px;
+  }
+
+  /* ---- Output rows ---- */
+  .out-head {
+    display: grid; grid-template-columns: 2fr 1fr 0.8fr 1fr 0.8fr;
+    gap: 6px; background: var(--pale-or); font-weight: bold;
+    padding: 6px 8px; margin-bottom: 4px;
+  }
+  .out-row {
+    display: grid; grid-template-columns: 2fr 1fr 0.8fr 1fr 0.8fr;
+    gap: 6px; align-items: center; padding: 3px 8px;
+  }
+  .out-row label { font-weight: bold; color: var(--charcoal); }
+  .out-val {
+    background: var(--pale-lime); border: 1px solid var(--border);
+    text-align: center; font-weight: bold; padding: 5px 6px;
+    font-variant-numeric: tabular-nums; color: var(--charcoal);
+  }
+  .out-val.key { background: var(--key-lime); font-size: 15px; }
+  .out-unit { font-size: 12px; color: var(--grey); }
+  .out-row-unitless .out-val { grid-column: 2 / -1; }
+
+  /* ---- Reference tables ---- */
+  table.ref { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ref th {
+    background: var(--pale-or); color: var(--charcoal);
+    font-weight: bold; text-align: left; padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.ref th.num { text-align: center; }
+  table.ref td {
+    padding: 5px 8px; border-bottom: 1px solid #EEE;
+    font-variant-numeric: tabular-nums;
+  }
+  table.ref td.num { text-align: center; }
+  .ref-hint { font-size: 12px; color: var(--grey); margin-top: 6px; font-style: italic; }
+
+  /* ---- Footer ---- */
+  .footer {
+    background: var(--charcoal); color: var(--white);
+    font-size: 12px; padding: 8px 24px; margin-top: 16px;
+  }
+  .footer a { color: var(--lime); text-decoration: none; }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 640px) {
+    body { font-size: 13px; }
+    .header { padding: 8px 12px; flex-wrap: wrap; gap: 8px; }
+    .header img { height: 36px; }
+    .header h1 { font-size: 18px; }
+    .accent-bar { font-size: 12px; padding: 6px 12px; }
+    .container { margin: 8px auto; padding: 0 8px; gap: 8px; }
+    .card { margin-bottom: 8px; }
+    .card-head { font-size: 13px; padding: 7px 10px; }
+    .card-body { padding: 8px 10px 10px; }
+    .row { grid-template-columns: 20px 1.4fr 1fr 90px; gap: 4px; }
+    .row label { font-size: 12px; }
+    .row input[type="number"] { font-size: 13px; padding: 6px 4px; }
+    .swap-btn { padding: 6px 2px; font-size: 11px; }
+    .duct-pair { gap: 3px; }
+    .duct-pair input[type="number"] { font-size: 13px; padding: 6px 2px; }
+    .duct-pair .mini-cb { width: 14px; height: 14px; }
+    .mode-row { grid-template-columns: 1fr 1.4fr; }
+    .mode-row select { font-size: 12px; }
+    .out-head, .out-row {
+      grid-template-columns: 1.5fr 1fr 0.6fr 1fr 0.6fr;
+      gap: 4px; padding: 4px 6px;
+    }
+    .out-head { font-size: 12px; }
+    .out-row label { font-size: 12px; }
+    .out-val { padding: 5px 4px; font-size: 12px; }
+    .out-val.key { font-size: 13px; }
+    .out-unit { font-size: 10px; }
+    table.ref { font-size: 12px; }
+    table.ref th, table.ref td { padding: 4px 6px; }
+    .footer { padding: 8px 12px; font-size: 11px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="../remedy-logo.png" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · HVAC Tool</div>
+      <h1>Ductwork Sizing Calculator</h1>
+    </div>
+  </div>
+  <a class="back-link" href="../Remedy_Tools.html">← All Tools</a>
+</div>
+<div class="accent-bar"></div>
+<div class="accent-strip">Enter Flow + Head Loss — the duct sizes automatically at a 2:3 ratio. Lock a dimension to override; the other dimension auto-adjusts.</div>
+
+<div class="container">
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card">
+      <div class="card-head">Duct Sizing</div>
+      <div class="card-body">
+
+        <div class="card-note" style="padding:0 0 6px 0;">
+          Default drivers are <b>Flow</b> + <b>Head Loss</b>. The Duct Size row auto-fills at a 2:3 ratio (wider than high). Check the box beside Width or Height and edit the value to override that dimension — the other one auto-adjusts to keep the design intent. Check both to fully override; Head Loss then becomes a result.
+        </div>
+
+        <div class="row" data-key="Q" id="row_Q">
+          <input type="checkbox" class="driver-cb" data-key="Q" id="cb_Q" title="Use as driver">
+          <label>Flow Rate (Q) <span class="tag" id="tag_Q"></span></label>
+          <input type="number" id="Q_val" value="1000" step="any">
+          <button class="swap-btn" data-swap="Q" title="Switch units">cfm ⇄</button>
+        </div>
+
+        <div class="row" data-key="dP" id="row_dP">
+          <input type="checkbox" class="driver-cb" data-key="dP" id="cb_dP" title="Use as driver">
+          <label>Head Loss (ΔP/L) <span class="tag" id="tag_dP"></span></label>
+          <input type="number" id="dP_val" value="0.1" step="any">
+          <button class="swap-btn" data-swap="dP" title="Switch units">in/100ft ⇄</button>
+        </div>
+
+        <div class="row" data-key="V" id="row_V">
+          <input type="checkbox" class="driver-cb" data-key="V" id="cb_V" title="Use as driver">
+          <label>Velocity (V) <span class="tag" id="tag_V"></span></label>
+          <input type="number" id="V_val" value="1500" step="any">
+          <button class="swap-btn" data-swap="V" title="Switch units">fpm ⇄</button>
+        </div>
+
+        <div class="row" data-key="D" id="row_D">
+          <input type="checkbox" class="driver-cb" data-key="D" id="cb_D" title="Use as driver">
+          <label>Equivalent Diameter (D) <span class="tag" id="tag_D"></span></label>
+          <input type="number" id="D_val" value="12" step="any">
+          <button class="swap-btn" data-swap="D" title="Switch units">in ⇄</button>
+        </div>
+
+        <div class="row" data-key="ab" id="row_ab">
+          <span></span>
+          <label>Duct Size <span class="tag" id="tag_ab"></span></label>
+          <div class="duct-pair">
+            <input type="checkbox" class="driver-cb mini-cb" data-key="a" id="cb_a" title="Lock Width">
+            <input type="number" id="a_val" value="12" step="any">
+            <span class="dim-x">×</span>
+            <input type="checkbox" class="driver-cb mini-cb" data-key="b" id="cb_b" title="Lock Height">
+            <input type="number" id="b_val" value="8" step="any">
+          </div>
+          <button class="swap-btn" data-swap="ab" title="Switch units">in ⇄</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="card">
+      <div class="card-head">Auxiliary Outputs  ·  Imperial &amp; SI</div>
+      <div class="card-body">
+        <div class="out-head">
+          <span>Result</span>
+          <span style="text-align:center">Imperial</span>
+          <span></span>
+          <span style="text-align:center">SI</span>
+          <span></span>
+        </div>
+        <div class="out-row">
+          <label>Head Loss (ΔP/L)</label>
+          <span class="out-val key" id="HL_imp">—</span>
+          <span class="out-unit">in WC / 100 ft</span>
+          <span class="out-val key" id="HL_si">—</span>
+          <span class="out-unit">Pa/m</span>
+        </div>
+        <div class="out-row">
+          <label>Equivalent Diameter</label>
+          <span class="out-val key" id="De_imp">—</span>
+          <span class="out-unit">in</span>
+          <span class="out-val key" id="De_si">—</span>
+          <span class="out-unit">mm</span>
+        </div>
+        <div class="out-row">
+          <label>Velocity Pressure</label>
+          <span class="out-val" id="Pv_imp">—</span>
+          <span class="out-unit">in WC</span>
+          <span class="out-val" id="Pv_si">—</span>
+          <span class="out-unit">Pa</span>
+        </div>
+        <div class="out-row">
+          <label>Flow Area</label>
+          <span class="out-val" id="A_imp">—</span>
+          <span class="out-unit">ft²</span>
+          <span class="out-val" id="A_si">—</span>
+          <span class="out-unit">m²</span>
+        </div>
+        <div class="out-row out-row-unitless">
+          <label>Reynolds Number</label>
+          <span class="out-val" id="Re_val">—</span>
+        </div>
+        <div class="out-row out-row-unitless">
+          <label>Friction Factor</label>
+          <span class="out-val" id="f_val">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Duct Sizing Criteria</div>
+      <div class="card-body">
+        <table class="ref" id="criteria_table">
+          <thead>
+            <tr>
+              <th class="num">Unit Size</th>
+              <th>Sizing Criteria</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:#B7D4EA;"><td class="num"><b>R/A</b></td><td>1200–1500 FPM</td></tr>
+            <tr style="background:#F8C7D2;"><td class="num"><b>S/A</b></td><td>0.1" w.c./100 ft, up to 2000 FPM</td></tr>
+            <tr style="background:#FFF59D;"><td class="num"><b>E/A</b></td><td>0.1" w.c./100 ft, up to 2000 FPM</td></tr>
+            <tr style="background:#C6E0A8;"><td class="num"><b>O/A</b></td><td>1200–1500 FPM</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-hint">Typical design targets by duct service.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fluid Properties (full width) -->
+<div class="container" style="grid-template-columns:1fr;">
+  <div>
+    <div class="card">
+      <div class="card-head">Fluid Properties</div>
+      <div class="card-note">Density and viscosity are looked up from the air temperature. Pick a duct material for roughness.</div>
+      <div class="card-body">
+
+        <div class="mode-row">
+          <label>Air Temperature</label>
+          <select id="air_temp">
+            <option value="0">32 °F  /  0 °C</option>
+            <option value="1">50 °F  /  10 °C</option>
+            <option value="2" selected>70 °F  /  21 °C  (standard)</option>
+            <option value="3">85 °F  /  29 °C</option>
+            <option value="4">100 °F  /  38 °C</option>
+            <option value="5">150 °F  /  66 °C</option>
+            <option value="6">200 °F  /  93 °C</option>
+            <option value="7">300 °F  /  149 °C</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0 8px;font-size:12px;color:var(--grey);">
+          <div>ρ = <span id="rho_disp" style="font-weight:bold;color:var(--orange-d);">0.0749</span> lb/ft³ &nbsp;/&nbsp; <span id="rho_disp_si" style="font-weight:bold;color:var(--orange-d);">1.200</span> kg/m³</div>
+          <div>μ = <span id="mu_disp" style="font-weight:bold;color:var(--orange-d);">0.0440</span> lb/(ft·hr) &nbsp;/&nbsp; <span id="mu_disp_si" style="font-weight:bold;color:var(--orange-d);">1.82e-5</span> Pa·s</div>
+        </div>
+
+        <div class="mode-row">
+          <label>Duct Material (ε)</label>
+          <select id="eps_material">
+            <option value="0" selected>McQuay default (galvanized) — 0.0005 ft / 0.15 mm</option>
+            <option value="1">Galvanized steel, new — 0.0003 ft / 0.09 mm</option>
+            <option value="2">Galvanized steel, aged — 0.0005 ft / 0.15 mm</option>
+            <option value="3">Aluminum — 0.00016 ft / 0.05 mm</option>
+            <option value="4">Stainless steel — 0.00007 ft / 0.02 mm</option>
+            <option value="5">Fibrous-glass duct liner — 0.005 ft / 1.5 mm</option>
+            <option value="6">Flex duct (fully extended) — 0.003 ft / 1.0 mm</option>
+            <option value="7">PVC — 0.000005 ft / 0.0015 mm</option>
+            <option value="8">Concrete (smooth) — 0.001 ft / 0.3 mm</option>
+          </select>
+        </div>
+
+        <div class="row" data-key="eps">
+          <span></span>
+          <label>Roughness (ε)</label>
+          <input type="number" id="eps_val" value="0.0005" step="any">
+          <button class="swap-btn" data-swap="eps" title="Switch units">ft ⇄</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Remedy Engineering   |   Darcy–Weisbach + Swamee–Jain   |   Internal tool
+</div>
+
+<script>
+'use strict';
+
+// ---------- Unit conversions ----------
+const toSI = {
+  rho: (v,u) => u === "lb/ft³"      ? v * 16.01846       : v,
+  mu:  (v,u) => u === "lb/(ft·hr)"  ? v * 0.0004133789   : v,
+  eps: (v,u) => u === "ft"          ? v * 0.3048         : v * 0.001,
+  Q:   (v,u) => u === "cfm"         ? v * 0.0004719474   : v * 0.001,
+  len: (v,u) => u === "in"          ? v * 0.0254         : v * 0.001,
+  V:   (v,u) => u === "fpm"         ? v * 0.00508        : v,
+  dP:  (v,u) => u === "in WC / 100 ft" ? v / 0.12237     : v,
+};
+const fromSI = {
+  rho: (v,u) => u === "lb/ft³"      ? v / 16.01846       : v,
+  mu:  (v,u) => u === "lb/(ft·hr)"  ? v / 0.0004133789   : v,
+  eps: (v,u) => u === "ft"          ? v / 0.3048         : v * 1000,
+  Q:   (v,u) => u === "cfm"         ? v / 0.0004719474   : v * 1000,
+  len: (v,u) => u === "in"          ? v / 0.0254         : v * 1000,
+  V:   (v,u) => u === "fpm"         ? v / 0.00508        : v,
+  dP:  (v,u) => u === "in WC / 100 ft" ? v * 0.12237     : v,
+};
+const FAMILY = { rho:'rho', mu:'mu', eps:'eps', Q:'Q',
+                 D:'len', a:'len', b:'len', V:'V', dP:'dP' };
+
+// Current display unit per family group. a and b share the 'ab' group.
+const UNIT_OPTIONS = {
+  Q:   ['cfm', 'L/s'],
+  D:   ['in', 'mm'],
+  ab:  ['in', 'mm'],
+  V:   ['fpm', 'm/s'],
+  dP:  ['in WC / 100 ft', 'Pa/m'],
+  eps: ['ft', 'mm'],
+};
+const UNIT_LABELS = {
+  'cfm':'cfm', 'L/s':'L/s',
+  'in':'in', 'mm':'mm',
+  'fpm':'fpm', 'm/s':'m/s',
+  'in WC / 100 ft':'in/100ft', 'Pa/m':'Pa/m',
+  'ft':'ft',
+};
+let UNITS = {
+  Q:'cfm', D:'in', ab:'in', V:'fpm', dP:'in WC / 100 ft', eps:'ft'
+};
+function unitGroup(k) { return (k === 'a' || k === 'b') ? 'ab' : k; }
+function getUnit(k) { return UNITS[unitGroup(k)]; }
+
+// ---------- Driver / lock state ----------
+const ROTATABLE = ['Q','V','dP','D'];
+const NEEDED_DRIVERS = 2;
+let DRIVERS = new Set(['Q', 'dP']);
+let DRIVER_ORDER = ['Q', 'dP'];   // LRU: oldest at index 0
+let LOCKED = new Set();           // subset of {'a','b'}
+
+let AIR_RHO_SI = 1.200;
+let AIR_MU_SI  = 1.82e-5;
+
+function touchDriver(k) {
+  if (!ROTATABLE.includes(k)) return;
+  DRIVER_ORDER = DRIVER_ORDER.filter(x => x !== k);
+  DRIVER_ORDER.push(k);
+  DRIVERS.add(k);
+  while (DRIVER_ORDER.length > NEEDED_DRIVERS) {
+    let idx = DRIVER_ORDER.findIndex(x => x !== 'Q');
+    if (idx < 0) idx = 0;
+    const kicked = DRIVER_ORDER.splice(idx, 1)[0];
+    DRIVERS.delete(kicked);
+  }
+}
+
+// ---------- Physics ----------
+function frictionFactor(eps, D, Re) {
+  const inside = eps / (3.7 * D) + 5.74 / Math.pow(Re, 0.9);
+  return 0.25 / Math.pow(Math.log10(inside), 2);
+}
+function darcyDP(rho, V, D, eps, mu) {
+  const Re = rho * V * D / mu;
+  const f  = frictionFactor(eps, D, Re);
+  return f * rho * V * V / (2 * D);
+}
+function sizeFromHeadloss(Q, eps, rho, mu, dPdL) {
+  const g  = 9.80665;
+  const S  = dPdL / (rho * g);
+  const nu = mu / rho;
+  const t1 = Math.pow(eps, 1.25) * Math.pow(Q * Q / (g * S), 4.75);
+  const t2 = nu * Math.pow(Q, 9.4) * Math.pow(1 / (g * S), 5.2);
+  return 0.66 * Math.pow(t1 + t2, 0.04);
+}
+function solveV_fromD_dP(D, dP, rho, eps, mu) {
+  let V = 5;
+  for (let i = 0; i < 80; i++) {
+    const Re = rho * V * D / mu;
+    if (!(Re > 0)) return null;
+    const f = frictionFactor(eps, D, Re);
+    const V_new = Math.sqrt(2 * dP * D / (f * rho));
+    if (!isFinite(V_new) || V_new <= 0) return null;
+    if (Math.abs(V_new - V) < 1e-7) return V_new;
+    V = V_new;
+  }
+  return V;
+}
+function solveD_fromV_dP(V, dP, rho, eps, mu) {
+  let D = 0.3;
+  for (let i = 0; i < 80; i++) {
+    const Re = rho * V * D / mu;
+    if (!(Re > 0)) return null;
+    const f = frictionFactor(eps, D, Re);
+    const D_new = f * rho * V * V / (2 * dP);
+    if (!isFinite(D_new) || D_new <= 0) return null;
+    if (Math.abs(D_new - D) / D_new < 1e-7) return D_new;
+    D = D_new;
+  }
+  return D;
+}
+// SMACNA equivalent diameter: De = 1.30 · (a·b)^0.625 / (a+b)^0.25
+function deFromAB(a, b) { return 1.30 * Math.pow(a*b, 0.625) / Math.pow(a+b, 0.25); }
+// Solve the "other" dimension given De and one known dimension (bisection).
+function solveOtherDim(De, given) {
+  let lo = given * 0.01, hi = given * 100;
+  let fLo = deFromAB(given, lo) - De;
+  let fHi = deFromAB(given, hi) - De;
+  if (fLo * fHi > 0) return null;
+  for (let i = 0; i < 100; i++) {
+    const mid = 0.5 * (lo + hi);
+    const fMid = deFromAB(given, mid) - De;
+    if (Math.abs(fMid) < 1e-10 || (hi - lo) / mid < 1e-9) return mid;
+    if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
+    else { lo = mid; fLo = fMid; }
+  }
+  return 0.5 * (lo + hi);
+}
+
+// ---------- Helpers ----------
+function $(id) { return document.getElementById(id); }
+function valNum(id) {
+  const el = $(id);
+  if (!el) return null;
+  const v = parseFloat(el.value);
+  return isFinite(v) ? v : null;
+}
+function fmt(v, decimals, grouping) {
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const o = { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
+  if (grouping) o.useGrouping = true;
+  return v.toLocaleString('en-US', o);
+}
+function setCell(id, txt) { const el = $(id); if (el) el.textContent = txt; }
+function setRowComputed(key, isComputed) {
+  const row = document.querySelector(`.row[data-key="${key}"]`);
+  if (!row) return;
+  row.classList.toggle('computed', isComputed);
+}
+
+// ---------- Driver / lock UI sync ----------
+function applyDrivers() {
+  // Q, D, V, dP: row-level computed look + checkbox state
+  ['Q','D','V','dP'].forEach(k => {
+    const isDriver = DRIVERS.has(k);
+    setRowComputed(k, !isDriver);
+    const cb = $('cb_' + k);
+    if (cb) cb.checked = isDriver;
+  });
+  // a, b: per-input computed look + checkbox state
+  ['a','b'].forEach(k => {
+    const isLocked = LOCKED.has(k);
+    const inp = $(k + '_val');
+    if (inp) inp.classList.toggle('computed-input', !isLocked);
+    const cb = $('cb_' + k);
+    if (cb) cb.checked = isLocked;
+  });
+}
+
+function updateUnitLabels() {
+  document.querySelectorAll('.swap-btn').forEach(btn => {
+    const k  = btn.getAttribute('data-swap');
+    const ug = (k === 'a' || k === 'b' || k === 'ab') ? 'ab' : k;
+    const u  = UNITS[ug];
+    btn.textContent = (UNIT_LABELS[u] || u) + '  ⇄';
+  });
+}
+
+// ---------- Solve & refresh ----------
+function refresh() {
+  const sRho = AIR_RHO_SI;
+  const sMu  = AIR_MU_SI;
+  const epsRaw = valNum('eps_val');
+  const sEps = epsRaw !== null ? toSI.eps(epsRaw, UNITS.eps) : null;
+
+  const bothLocked = LOCKED.has('a') && LOCKED.has('b');
+  // When both dims are locked, only ONE primary value stays user-controlled.
+  // Prefer Q, then V, then dP.
+  const preservedDriver = bothLocked
+    ? (['Q','V','dP'].find(k => DRIVERS.has(k)) || 'Q')
+    : null;
+
+  // Pull values
+  let Q = null, D = null, a = null, b = null, V = null, dP = null;
+  if (DRIVERS.has('Q'))  Q  = valNum('Q_val')  !== null ? toSI.Q (valNum('Q_val'),  UNITS.Q)  : null;
+  if (DRIVERS.has('D'))  D  = valNum('D_val')  !== null ? toSI.len(valNum('D_val'),  UNITS.D)  : null;
+  if (DRIVERS.has('V'))  V  = valNum('V_val')  !== null ? toSI.V (valNum('V_val'),  UNITS.V)  : null;
+  if (DRIVERS.has('dP')) dP = valNum('dP_val') !== null ? toSI.dP(valNum('dP_val'), UNITS.dP) : null;
+  if (LOCKED.has('a'))   a  = valNum('a_val')  !== null ? toSI.len(valNum('a_val'),  UNITS.ab) : null;
+  if (LOCKED.has('b'))   b  = valNum('b_val')  !== null ? toSI.len(valNum('b_val'),  UNITS.ab) : null;
+
+  const ok = (x) => x !== null && x > 0;
+  let De = null, A = null, Re = null, f = null, Pv = null;
+
+  if (ok(sRho) && ok(sMu) && ok(sEps)) {
+    try {
+      if (bothLocked && ok(a) && ok(b)) {
+        // Both dims set → De is fixed; preserve one primary, recompute the rest.
+        De = deFromAB(a, b);
+        A  = Math.PI * De * De / 4;
+        D  = De;
+        if (preservedDriver === 'Q' && ok(Q)) {
+          V = Q / A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        } else if (preservedDriver === 'V' && ok(V)) {
+          Q = V * A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        } else if (preservedDriver === 'dP' && ok(dP)) {
+          V = solveV_fromD_dP(De, dP, sRho, sEps, sMu);
+          if (ok(V)) Q = V * A;
+        } else if (ok(Q)) {
+          // Safe fallback
+          V = Q / A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        }
+      } else {
+        // Solve De from the two rotatable drivers
+        const driverKey = [...DRIVERS].filter(k => ROTATABLE.includes(k)).sort().join('|');
+        switch (driverKey) {
+          case 'D|Q':
+            if (ok(Q) && ok(D)) { A = Math.PI * D * D / 4; V = Q / A; dP = darcyDP(sRho, V, D, sEps, sMu); }
+            break;
+          case 'Q|V':
+            if (ok(Q) && ok(V)) {
+              D = Math.sqrt(4 * Q / (Math.PI * V));
+              A = Math.PI * D * D / 4;
+              dP = darcyDP(sRho, V, D, sEps, sMu);
+            }
+            break;
+          case 'Q|dP':
+            if (ok(Q) && ok(dP)) {
+              D = sizeFromHeadloss(Q, sEps, sRho, sMu, dP);
+              A = Math.PI * D * D / 4;
+              V = Q / A;
+              dP = darcyDP(sRho, V, D, sEps, sMu);
+            }
+            break;
+          case 'D|V':
+            if (ok(D) && ok(V)) { A = Math.PI * D * D / 4; Q = V * A; dP = darcyDP(sRho, V, D, sEps, sMu); }
+            break;
+          case 'D|dP':
+            if (ok(D) && ok(dP)) {
+              V = solveV_fromD_dP(D, dP, sRho, sEps, sMu);
+              if (ok(V)) { A = Math.PI * D * D / 4; Q = V * A; }
+            }
+            break;
+          case 'V|dP':
+            if (ok(V) && ok(dP)) {
+              D = solveD_fromV_dP(V, dP, sRho, sEps, sMu);
+              if (ok(D)) {
+                A = Math.PI * D * D / 4;
+                Q = V * A;
+                dP = darcyDP(sRho, V, D, sEps, sMu);
+              }
+            }
+            break;
+        }
+        if (ok(D)) De = D;
+
+        // Derive a, b from De
+        if (ok(De)) {
+          if (LOCKED.has('a') && ok(a)) {
+            b = solveOtherDim(De, a);
+          } else if (LOCKED.has('b') && ok(b)) {
+            a = solveOtherDim(De, b);
+          } else {
+            // 2:3 ratio (wider than high): a = 1.5·b
+            // SMACNA: De = K · b where K = 1.30·(1.5)^0.625 / (2.5)^0.25
+            const K = 1.30 * Math.pow(1.5, 0.625) / Math.pow(2.5, 0.25);
+            b = De / K;
+            a = 1.5 * b;
+          }
+        }
+      }
+
+      if (ok(De) && ok(V)) {
+        Re = sRho * V * De / sMu;
+        f  = frictionFactor(sEps, De, Re);
+        Pv = 0.5 * sRho * V * V;
+      }
+    } catch (e) { /* fall through to dashes */ }
+  }
+
+  // ---- Write computed values back into input cells ----
+  function putComputed(key, si_value, family, unitVal) {
+    const inp = $(key + '_val');
+    if (!inp) return;
+    let isUserControlled;
+    if (key === 'a' || key === 'b') {
+      isUserControlled = LOCKED.has(key);
+    } else if (bothLocked) {
+      isUserControlled = (key === preservedDriver);
+    } else {
+      isUserControlled = DRIVERS.has(key);
+    }
+    if (isUserControlled) return;
+    if (!ok(si_value)) { inp.value = ''; return; }
+    const disp = fromSI[family](si_value, unitVal);
+    if (key === 'a' || key === 'b') {
+      inp.value = (unitVal === 'in') ? Math.ceil(disp) : Math.ceil(disp / 25) * 25;
+      return;
+    }
+    let dec;
+    if      (key === 'Q')  dec = 1;
+    else if (key === 'V')  dec = (unitVal === 'fpm') ? 0 : 2;
+    else if (key === 'dP') dec = (unitVal === 'in WC / 100 ft') ? 4 : 3;
+    else                   dec = (unitVal === 'in') ? 2 : 1;
+    inp.value = +disp.toFixed(dec);
+  }
+  putComputed('Q',  Q,  'Q',   UNITS.Q);
+  putComputed('D',  D,  'len', UNITS.D);
+  putComputed('a',  a,  'len', UNITS.ab);
+  putComputed('b',  b,  'len', UNITS.ab);
+  putComputed('V',  V,  'V',   UNITS.V);
+  putComputed('dP', dP, 'dP',  UNITS.dP);
+
+  // ---- Auxiliary outputs ----
+  if (ok(De)) {
+    setCell('De_imp', fmt(De / 0.0254, 2, true));
+    setCell('De_si',  fmt(De * 1000,   1, true));
+  } else { setCell('De_imp', '—'); setCell('De_si', '—'); }
+
+  if (ok(A)) {
+    setCell('A_imp',  fmt(A * 10.76391, 4, true));
+    setCell('A_si',   fmt(A,            4, true));
+  } else { setCell('A_imp', '—'); setCell('A_si', '—'); }
+
+  if (ok(Re)) setCell('Re_val', fmt(Re, 0, true)); else setCell('Re_val', '—');
+  if (ok(f))  setCell('f_val',  fmt(f, 4, false)); else setCell('f_val',  '—');
+
+  if (ok(Pv)) {
+    setCell('Pv_imp', fmt(Pv * 0.0040146, 4, true));
+    setCell('Pv_si',  fmt(Pv,             2, true));
+  } else { setCell('Pv_imp', '—'); setCell('Pv_si', '—'); }
+
+  if (ok(dP)) {
+    setCell('HL_imp', fmt(dP * 0.12237, 4, true));
+    setCell('HL_si',  fmt(dP,           3, true));
+  } else { setCell('HL_imp', '—'); setCell('HL_si', '—'); }
+}
+
+// ---------- Swap-unit button ----------
+function swapUnit(key) {
+  const ug = (key === 'a' || key === 'b' || key === 'ab') ? 'ab' : key;
+  const opts = UNIT_OPTIONS[ug];
+  const oldUnit = UNITS[ug];
+  const newUnit = opts.find(o => o !== oldUnit);
+  if (!newUnit) return;
+
+  const keysToConvert = (ug === 'ab') ? ['a', 'b'] : [key];
+  for (const k of keysToConvert) {
+    const fam = FAMILY[k] || FAMILY[key] || ug;
+    const inp = $(k + '_val');
+    if (!inp) continue;
+    const cur = parseFloat(inp.value);
+    if (!isFinite(cur)) continue;
+    const si  = toSI[fam](cur, oldUnit);
+    const disp = fromSI[fam](si, newUnit);
+    let dec = 4;
+    if (fam === 'len')      dec = (newUnit === 'in') ? 2 : 1;
+    else if (fam === 'Q')   dec = 1;
+    else if (fam === 'V')   dec = (newUnit === 'fpm') ? 0 : 2;
+    else if (fam === 'dP')  dec = (newUnit === 'in WC / 100 ft') ? 4 : 3;
+    else if (fam === 'eps') dec = (newUnit === 'ft') ? 6 : 4;
+    inp.value = +disp.toFixed(dec);
+  }
+  UNITS[ug] = newUnit;
+  updateUnitLabels();
+  refresh();
+}
+
+// ---------- Reference data ----------
+const RHO_TABLE = [
+  [32,   0, 0.0807, 1.293],
+  [50,  10, 0.0778, 1.247],
+  [70,  21, 0.0749, 1.200],
+  [85,  29, 0.0729, 1.168],
+  [100, 38, 0.0708, 1.135],
+  [150, 66, 0.0650, 1.041],
+  [200, 93, 0.0602, 0.964],
+  [300,149, 0.0522, 0.836],
+];
+const MU_TABLE = [
+  [32,   0, 0.0416, 1.72e-5],
+  [50,  10, 0.0427, 1.77e-5],
+  [70,  21, 0.0440, 1.82e-5],
+  [85,  29, 0.0449, 1.86e-5],
+  [100, 38, 0.0459, 1.90e-5],
+  [150, 66, 0.0491, 2.03e-5],
+  [200, 93, 0.0520, 2.15e-5],
+  [300,149, 0.0577, 2.39e-5],
+];
+const EPS_TABLE = [
+  ["McQuay default (galvanized)",0.0005,    0.15],
+  ["Galvanized steel (new)",     0.0003,    0.09],
+  ["Galvanized steel (aged)",    0.0005,    0.15],
+  ["Aluminum",                   0.00016,   0.05],
+  ["Stainless steel",            0.00007,   0.02],
+  ["Fibrous-glass duct liner",   0.005,     1.5],
+  ["Flex duct (fully extended)", 0.003,     1.0],
+  ["PVC",                        0.000005,  0.0015],
+  ["Concrete (smooth)",          0.001,     0.3],
+];
+
+function applyRoughness() {
+  const idx = parseInt($('eps_material').value, 10) || 0;
+  const [, ft, mm] = EPS_TABLE[idx];
+  $('eps_val').value = (UNITS.eps === 'ft') ? ft : mm;
+}
+function applyAirTemp() {
+  const idx = parseInt($('air_temp').value, 10) || 0;
+  const [, , rhoLb, rhoKg] = RHO_TABLE[idx];
+  const [, , muLb,  muPa]  = MU_TABLE[idx];
+  AIR_RHO_SI = rhoKg;
+  AIR_MU_SI  = muPa;
+  $('rho_disp').textContent    = rhoLb.toFixed(4);
+  $('rho_disp_si').textContent = rhoKg.toFixed(3);
+  $('mu_disp').textContent     = muLb.toFixed(4);
+  $('mu_disp_si').textContent  = muPa.toExponential(2);
+}
+
+// ---------- Init ----------
+function init() {
+  $('eps_material').addEventListener('change', () => {
+    applyRoughness();
+    refresh();
+  });
+  $('air_temp').addEventListener('change', () => {
+    applyAirTemp();
+    refresh();
+  });
+  $('eps_val').addEventListener('input', refresh);
+
+  // Q, D, V, dP — typing auto-promotes to driver
+  ['Q','D','V','dP'].forEach(k => {
+    const inp = $(k + '_val');
+    inp.addEventListener('focus', () => {
+      inp.select();
+      if (LOCKED.has('a') && LOCKED.has('b')) {
+        LOCKED.delete('b');
+        applyDrivers();
+        refresh();
+      }
+    });
+    inp.addEventListener('input', () => {
+      if (!DRIVERS.has(k)) {
+        touchDriver(k);
+        applyDrivers();
+      }
+      refresh();
+    });
+  });
+
+  // a, b — typing auto-LOCKs that dimension (does NOT touch Q/dP)
+  ['a','b'].forEach(k => {
+    const inp = $(k + '_val');
+    inp.addEventListener('focus', () => inp.select());
+    inp.addEventListener('input', () => {
+      if (!LOCKED.has(k)) {
+        LOCKED.add(k);
+        applyDrivers();
+      }
+      refresh();
+    });
+  });
+
+  // Swap-unit buttons
+  document.querySelectorAll('.swap-btn').forEach(btn => {
+    btn.addEventListener('click', () => swapUnit(btn.getAttribute('data-swap')));
+  });
+
+  // Driver / lock checkboxes
+  document.querySelectorAll('.driver-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const k = cb.getAttribute('data-key');
+      if (k === 'a' || k === 'b') {
+        if (cb.checked) LOCKED.add(k);
+        else LOCKED.delete(k);
+        applyDrivers();
+        refresh();
+        return;
+      }
+      // Rotatable drivers (Q/V/dP/D)
+      if (cb.checked) {
+        touchDriver(k);
+      } else {
+        if (DRIVERS.size <= NEEDED_DRIVERS) {
+          cb.checked = true; // can't drop below minimum
+          return;
+        }
+        DRIVERS.delete(k);
+        DRIVER_ORDER = DRIVER_ORDER.filter(x => x !== k);
+      }
+      applyDrivers();
+      refresh();
+    });
+  });
+
+  applyAirTemp();
+  applyRoughness();
+  updateUnitLabels();
+  applyDrivers();
+  refresh();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

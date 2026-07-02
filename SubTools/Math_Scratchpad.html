@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="../shared/theme.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Math Scratchpad — Remedy Engineering</title>
+<style>
+  :root {
+    --charcoal:#2B2B2B; --orange:#ef702d; --orange-d:#c45a1e;
+    --amber:#F0A010; --lime:#99a668; --lime-d:#839053;
+    --pale-or:#fde8d5; --pale-lime:#e8edda; --key-lime:#D6E5A8;
+    --cream:#FFF4E0; --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F4F4F4; --red:#B00000;
+    --paper:#FFFFFF; --grid:#D6DDE3;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body {
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
+    color: var(--ink); background: var(--bg); font-size: 14px;
+  }
+
+  /* ======== APP CHROME ======== */
+  .header {
+    background: var(--white);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    gap: 18px; flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 18px; }
+  .header img { height: 52px; display: block; }
+  .header-divider { width: 1px; height: 44px; background: var(--border); }
+  .header-titles { line-height: 1.1; }
+  .header .eyebrow {
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange-d); margin-bottom: 4px;
+  }
+  .header h1 {
+    margin: 0; font-size: 22px; font-weight: bold;
+    color: var(--ink); letter-spacing: 0.3px;
+  }
+  .greeting { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--grey); }
+  .greeting strong { color: var(--ink); font-weight: 600; }
+  .greeting .pencil-btn {
+    background: transparent; border: none; padding: 2px 4px; cursor: pointer;
+    font-size: 14px; line-height: 1; color: var(--grey-l);
+    opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .greeting:hover .pencil-btn { opacity: 1; }
+  .greeting .pencil-btn:hover { color: var(--orange); }
+
+  .accent-stripes { display: flex; height: 5px; }
+  .accent-stripes span { flex: 1; }
+  .accent-stripes .s-charcoal { background: var(--charcoal); }
+  .accent-stripes .s-orange   { background: var(--orange); }
+  .accent-stripes .s-lime     { background: var(--lime-d); }
+
+  .tabnav {
+    background: var(--charcoal);
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    padding: 0 12px;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px;
+    color: rgba(255,244,224,0.72);
+    text-decoration: none;
+    font-size: 12px; font-weight: bold;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .tab:hover { color: var(--on-dark); background: var(--charcoal-2); }
+  .tab.is-active { color: var(--on-dark); border-bottom-color: var(--orange); background: var(--charcoal-2); }
+  .tab .tab-dot { width: 7px; height: 7px; background: var(--lime); display: inline-block; }
+  .tab.is-active .tab-dot { background: var(--orange); }
+
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip {
+    background: var(--charcoal); color: var(--on-dark);
+    font-style: italic; font-weight: bold; font-size: 13px; padding: 6px 24px;
+  }
+
+  /* ======== APP LAYOUT ======== */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 200px);
+  }
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { border-right: none !important; border-bottom: 1px solid var(--border); }
+  }
+
+  /* ======== SIDEBAR ======== */
+  .sidebar {
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    padding: 14px;
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+  }
+  .sidebar h3 {
+    font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--orange-d); margin: 14px 0 6px; font-weight: bold;
+  }
+  .sidebar h3:first-of-type { margin-top: 0; }
+
+  .sheet-controls { display: flex; gap: 4px; margin-bottom: 6px; }
+  .sheet-controls select {
+    flex: 1; padding: 5px 6px; font-family: inherit; font-size: 13px;
+    border: 1px solid var(--border); background: var(--cream);
+    color: var(--ink); font-weight: bold;
+  }
+  .sheet-btn {
+    background: var(--cream); color: var(--orange-d); border: 1px solid var(--border);
+    padding: 4px 8px; cursor: pointer; font-family: inherit; font-size: 13px;
+    font-weight: bold;
+  }
+  .sheet-btn:hover { background: var(--orange); color: var(--on-dark); border-color: var(--orange); }
+  .sheet-btn.danger:hover { background: var(--red); border-color: var(--red); color: var(--on-dark); }
+
+  .palette { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .palette-item {
+    background: var(--pale-or); border: 1px dashed var(--orange);
+    padding: 10px 6px; text-align: center; cursor: grab;
+    user-select: none; font-size: 12px; font-weight: bold;
+    color: var(--orange-d); transition: background 0.12s, transform 0.12s;
+  }
+  .palette-item:hover { background: var(--orange); color: var(--on-dark); }
+  .palette-item:active { cursor: grabbing; transform: scale(0.97); }
+  .palette-item .pi-icon { display: block; font-size: 22px; margin-bottom: 3px; }
+
+  /* ======== QUICK-INSERT TOOLBOX ======== */
+  .toolbox {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+  }
+  .toolbox.toolbox-col { grid-template-columns: 1fr; }
+  .chip {
+    background: var(--cream); border: 1px solid var(--border);
+    color: var(--ink); padding: 5px 4px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px; font-weight: bold;
+    cursor: pointer; text-align: center;
+    user-select: none; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .chip:hover {
+    background: var(--orange); color: var(--on-dark); border-color: var(--orange);
+  }
+  .chip.chip-const {
+    background: var(--pale-lime); color: var(--lime-d);
+  }
+  .chip.chip-const:hover {
+    background: var(--lime-d); color: var(--on-dark); border-color: var(--lime-d);
+  }
+  .chip.chip-eq {
+    font-size: 10px; text-align: left; padding: 6px 7px;
+    white-space: normal; line-height: 1.25;
+    background: var(--pale-or); color: var(--orange-d);
+  }
+  .chip.chip-eq:hover {
+    background: var(--orange); color: var(--on-dark); border-color: var(--orange);
+  }
+  .chip .chip-unit {
+    display: block;
+    font-size: 8px;
+    font-weight: normal;
+    opacity: 0.78;
+    margin-top: 1px;
+    letter-spacing: 0;
+    line-height: 1.1;
+    white-space: normal;
+  }
+  .chip.chip-const {
+    padding: 4px 3px;
+    line-height: 1.15;
+  }
+  .toolbox-hint {
+    font-size: 10px; color: var(--grey-l); font-style: italic;
+    margin: 4px 0 2px; line-height: 1.3;
+  }
+
+  .export-actions { display: flex; flex-direction: column; gap: 6px; }
+  .btn-export {
+    background: var(--lime-d); color: var(--on-dark); border: none;
+    padding: 10px; cursor: pointer; font-family: inherit; font-size: 13px;
+    font-weight: bold; letter-spacing: 0.5px;
+  }
+  .btn-export:hover { background: var(--lime); }
+  .btn-export.secondary { background: var(--charcoal); }
+  .btn-export.secondary:hover { background: var(--charcoal-2); }
+
+  .pdf-refs { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+  .pdf-ref-item {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--pale-lime); border: 1px solid var(--border);
+    padding: 5px 7px; font-size: 12px;
+  }
+  .pdf-ref-item a {
+    color: var(--lime-d); text-decoration: none; font-weight: bold;
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .pdf-ref-item a:hover { color: var(--orange-d); text-decoration: underline; }
+  .pdf-ref-item button {
+    background: transparent; border: none; color: var(--red);
+    cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1;
+  }
+  .pdf-ref-item button:hover { color: var(--ink); }
+  .pdf-empty { font-size: 11px; color: var(--grey-l); font-style: italic; padding: 4px 0; }
+
+  .hint-box {
+    background: var(--pale-lime); border-left: 3px solid var(--lime-d);
+    padding: 8px 10px; font-size: 11px; color: var(--ink);
+    margin-top: 12px; line-height: 1.4;
+  }
+  .hint-box b { color: var(--orange-d); }
+  .hint-box code {
+    background: var(--white); padding: 1px 4px; border-radius: 2px;
+    font-family: Consolas, monospace; font-size: 10px; color: var(--orange-d);
+  }
+
+  /* ======== CANVAS AREA ======== */
+  .canvas-area {
+    background: var(--bg);
+    padding: 24px;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* ======== PAPER SHEET ======== */
+  .paper {
+    width: 850px;
+    background: var(--paper);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex; flex-direction: column;
+    flex-shrink: 0;
+    max-height: calc(100vh - 248px);
+  }
+
+  /* Paper header (top, full width, no grid) */
+  .paper-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 2px solid var(--charcoal);
+    background: var(--white);
+    align-items: stretch;
+  }
+  .paper-header-logo {
+    display: flex; align-items: center;
+  }
+  .paper-header-logo img { width: 200px; height: auto; display: block; }
+  .paper-header-fields {
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .ph-field {
+    display: grid; grid-template-columns: 110px 1fr;
+    align-items: center; gap: 8px;
+    border-bottom: 1px dotted var(--border);
+    padding: 4px 0;
+  }
+  .ph-field:last-child { border-bottom: none; }
+  .ph-field label {
+    font-weight: bold; color: var(--ink);
+    text-transform: uppercase; font-size: 10px; letter-spacing: 1.5px;
+  }
+  .ph-field input {
+    border: none; background: transparent;
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    color: var(--orange-d); padding: 2px 4px; outline: none;
+    border-bottom: 1px solid transparent;
+  }
+  .ph-field input:focus { border-bottom-color: var(--orange); }
+  .ph-field .ph-page {
+    font-weight: bold; color: var(--orange-d); font-size: 13px; padding: 2px 4px;
+  }
+
+  /* Project / Description band */
+  .paper-band {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 2px solid var(--charcoal);
+    background: var(--white);
+  }
+  .pb-cell {
+    padding: 6px 10px 8px;
+    position: relative; min-height: 56px;
+  }
+  .pb-cell + .pb-cell { border-left: 1px solid var(--charcoal); }
+  .pb-cell label {
+    font-size: 10px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--ink);
+    display: block; margin-bottom: 3px;
+  }
+  .pb-cell textarea {
+    width: 100%; border: none; background: transparent;
+    font-family: inherit; font-size: 13px; color: var(--ink);
+    resize: none; outline: none; padding: 0;
+    min-height: 30px;
+  }
+
+  /* Pages container — only this scrolls */
+  .pages-wrap {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: var(--bg);
+  }
+  .page {
+    width: 100%;
+    height: 980px;
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+    border-bottom: 4px dashed var(--border);
+    background-image:
+      linear-gradient(to right, var(--grid) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .page:last-child { border-bottom: none; }
+  .page-label {
+    position: absolute; top: 8px; right: 12px;
+    font-size: 10px; color: var(--grey-l); font-weight: bold;
+    letter-spacing: 1px; text-transform: uppercase;
+    pointer-events: none; z-index: 1;
+  }
+  .page-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 26px;
+    background: var(--charcoal);
+    color: var(--on-dark);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    font-size: 10px;
+    z-index: 2;
+  }
+  .page-footer .pf-left { font-weight: bold; letter-spacing: 1px; }
+  .page-footer .pf-right { color: rgba(255,244,224,0.7); }
+
+  .widget-area {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 26px;
+  }
+
+  /* ======== WIDGETS ======== */
+  .widget {
+    position: absolute;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    padding: 6px 8px;
+    cursor: move;
+    min-width: 80px;
+    min-height: 30px;
+    font-size: 13px;
+    line-height: 1.4;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+  .widget:hover { border-color: var(--orange); }
+  .widget.selected { border-color: var(--orange); box-shadow: 0 0 0 2px var(--pale-or); z-index: 10; }
+  .widget.dragging { opacity: 0.7; }
+
+  .widget-handle {
+    position: absolute; top: -1px; left: -1px;
+    width: 14px; height: 14px;
+    background: var(--orange);
+    color: var(--on-dark); font-size: 9px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: move; opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .widget:hover .widget-handle,
+  .widget.selected .widget-handle { opacity: 1; }
+
+  .widget-delete {
+    position: absolute; top: -1px; right: -1px;
+    width: 14px; height: 14px;
+    background: var(--red); color: var(--on-dark);
+    border: none; cursor: pointer; padding: 0;
+    font-size: 11px; line-height: 1;
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .widget:hover .widget-delete,
+  .widget.selected .widget-delete { opacity: 1; }
+
+  .widget-resize {
+    position: absolute; bottom: 0; right: 0;
+    width: 12px; height: 12px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 50%, var(--grey-l) 50%);
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .widget:hover .widget-resize,
+  .widget.selected .widget-resize { opacity: 1; }
+
+  .widget.type-text .w-input {
+    width: 100%; min-height: 24px;
+    border: none; background: transparent;
+    font-family: inherit; font-size: inherit; color: var(--ink);
+    resize: none; outline: none; padding: 0;
+  }
+  .widget.type-text.is-heading .w-input {
+    font-size: 18px; font-weight: bold; color: var(--orange-d);
+  }
+  .widget.type-text .w-bold-toggle {
+    position: absolute; bottom: -1px; left: -1px;
+    width: 14px; height: 14px; background: var(--charcoal);
+    color: var(--on-dark); border: none; cursor: pointer;
+    font-size: 10px; font-weight: bold; opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .widget.type-text:hover .w-bold-toggle,
+  .widget.type-text.selected .w-bold-toggle { opacity: 1; }
+  .widget.type-text.is-heading .w-bold-toggle { background: var(--orange); }
+
+  .widget.type-calc {
+    background: rgba(255,248,235,0.94);
+    border-left: 3px solid var(--orange);
+  }
+  .widget.type-calc .w-label-in {
+    width: 100%; border: none; background: transparent;
+    font-size: 11px; color: var(--grey); font-weight: bold;
+    outline: none; padding: 0; margin-bottom: 2px;
+  }
+  .widget.type-calc .w-expr {
+    width: 100%; font-family: Consolas, "Courier New", monospace;
+    font-size: 13px; border: 1px solid var(--border);
+    background: var(--white); padding: 3px 5px; outline: none;
+    color: var(--ink);
+    min-height: 23px;
+    white-space: pre;
+    overflow-x: auto;
+    cursor: text;
+  }
+  .widget.type-calc .w-expr:focus { border-color: var(--orange); }
+  .widget.type-calc .w-expr:empty::before {
+    content: attr(data-placeholder);
+    color: var(--grey-l);
+    font-style: italic;
+    pointer-events: none;
+  }
+  .widget.type-calc .w-result {
+    margin-top: 3px; padding: 4px 6px;
+    background: var(--key-lime); border: 1px solid var(--border);
+    font-weight: bold; font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    word-break: break-word;
+  }
+  .widget.type-calc .w-result.error {
+    background: #FFE5E5; color: var(--red); font-weight: normal;
+    font-style: italic; font-size: 11px;
+  }
+
+  .widget.type-var {
+    background: rgba(232,237,218,0.94);
+    border-left: 3px solid var(--lime-d);
+    padding: 4px 6px;
+  }
+  .widget.type-var .w-row {
+    display: grid;
+    grid-template-columns: 70px 12px minmax(60px, 1fr) auto;
+    gap: 4px; align-items: center;
+    height: 100%;
+  }
+  .widget.type-var .w-name {
+    font-family: Consolas, monospace; font-size: 13px; font-weight: bold;
+    border: 1px solid var(--border); background: var(--white);
+    padding: 3px 5px; outline: none; color: var(--orange-d);
+    text-align: center; min-width: 0;
+  }
+  .widget.type-var .w-name:focus { border-color: var(--lime-d); }
+  .widget.type-var .w-eq { text-align: center; font-weight: bold; color: var(--grey); }
+  .widget.type-var .w-expr {
+    width: 100%; font-family: Consolas, monospace; font-size: 13px;
+    border: 1px solid var(--border); background: var(--white);
+    padding: 3px 5px; outline: none; color: var(--ink);
+    min-width: 0;
+    min-height: 23px;
+    white-space: pre;
+    overflow-x: auto;
+    cursor: text;
+  }
+  .widget.type-var .w-expr:focus { border-color: var(--lime-d); }
+  .widget.type-var .w-expr:empty::before {
+    content: attr(data-placeholder);
+    color: var(--grey-l);
+    font-style: italic;
+    pointer-events: none;
+  }
+  .unit-token {
+    font-style: italic;
+    font-size: 0.82em;
+    color: var(--lime-d);
+    padding: 0 1px;
+    vertical-align: baseline;
+  }
+  .widget.type-var .w-result {
+    font-size: 12px; font-weight: bold; color: var(--lime-d);
+    font-variant-numeric: tabular-nums;
+    padding: 3px 6px;
+    background: var(--pale-lime);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    max-width: 160px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .widget.type-var .w-result.error { color: var(--red); background: #FFE5E5; font-weight: normal; font-style: italic; }
+
+  .widget.type-image {
+    padding: 2px;
+    background: rgba(255,255,255,0.96);
+  }
+  .widget.type-image img {
+    width: 100%; height: 100%; object-fit: contain;
+    display: block;
+  }
+  .widget.type-image .img-empty {
+    width: 100%; height: 100%; min-height: 80px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--pale-or); color: var(--orange-d);
+    font-size: 11px; cursor: pointer;
+  }
+  .widget.type-image .img-empty .img-icon { font-size: 28px; margin-bottom: 4px; }
+
+  .drop-zone-active .widget-area {
+    background: rgba(239,112,45,0.06);
+    outline: 2px dashed var(--orange);
+    outline-offset: -2px;
+  }
+
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 16px; font-size: 13px;
+    border-left: 4px solid var(--lime-d);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9999; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { border-left-color: var(--red); }
+
+  .footer {
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 24px; font-size: 12px;
+    border-top: 4px solid var(--orange);
+  }
+  .footer a { color: var(--lime); text-decoration: none; }
+
+  @media print {
+    .header, .accent-stripes, .tabnav, .accent-bar, .accent-strip,
+    .sidebar, .footer { display: none !important; }
+    .app { display: block; }
+    .canvas-area { padding: 0; background: white; }
+    .paper { box-shadow: none; margin: 0; max-height: none; }
+    .pages-wrap { overflow: visible; }
+    .widget-handle, .widget-delete, .widget-resize, .w-bold-toggle { display: none !important; }
+  }
+  .paper.exporting .widget-handle,
+  .paper.exporting .widget-delete,
+  .paper.exporting .widget-resize,
+  .paper.exporting .w-bold-toggle { display: none !important; }
+  .paper.exporting .widget { border-color: transparent; background: transparent; }
+  .paper.exporting .widget.type-calc { background: transparent; border-left-color: var(--orange); }
+  .paper.exporting .widget.type-var { background: transparent; border-left-color: var(--lime-d); }
+  .paper.exporting .pages-wrap { overflow: visible; max-height: none; }
+  .paper.exporting { max-height: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="data:image/png;base64,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" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering &middot; HVAC Tool</div>
+      <h1>Math Scratchpad</h1>
+    </div>
+  </div>
+  <div class="greeting" id="greeting">
+    <span id="greet-text">Welcome.</span>
+    <button class="pencil-btn" id="greet-edit" title="Edit profile" aria-label="Edit profile">&#9998;</button>
+  </div>
+</div>
+<div class="accent-stripes" aria-hidden="true">
+  <span class="s-charcoal"></span>
+  <span class="s-orange"></span>
+  <span class="s-lime"></span>
+</div>
+<nav class="tabnav" aria-label="Primary">
+  <a class="tab" href="../Remedy_Home.html"><span class="tab-dot"></span>Home</a>
+  <a class="tab is-active" href="../Remedy_Tools.html"><span class="tab-dot"></span>Tools</a>
+  <a class="tab" href="../Training_Library.html"><span class="tab-dot"></span>Documentation</a>
+</nav>
+<div class="accent-bar"></div>
+<div class="accent-strip">Drag widgets onto engineering paper. Calculations live-evaluate with full unit support — type expressions like <b>1.08 * 1000 cfm * 20°F =</b> directly in any calc box.</div>
+
+<div class="app" id="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+
+    <h3>Sheets</h3>
+    <div class="sheet-controls">
+      <select id="sheetSelect" aria-label="Active sheet"></select>
+      <button class="sheet-btn" id="newSheet" title="New sheet">+</button>
+    </div>
+    <div class="sheet-controls">
+      <button class="sheet-btn" id="renameSheet" style="flex:1;">Rename</button>
+      <button class="sheet-btn" id="dupSheet" style="flex:1;">Duplicate</button>
+      <button class="sheet-btn danger" id="delSheet" style="flex:1;">Delete</button>
+    </div>
+
+    <h3>Pages</h3>
+    <div class="sheet-controls">
+      <button class="sheet-btn" id="addPage" style="flex:1;">+ Add Page</button>
+      <button class="sheet-btn danger" id="delPage" style="flex:1;">Remove Last</button>
+    </div>
+
+    <h3>Add Widget</h3>
+    <div class="palette">
+      <div class="palette-item" draggable="true" data-type="text">
+        <span class="pi-icon">T</span>Text / Heading
+      </div>
+      <div class="palette-item" draggable="true" data-type="calc">
+        <span class="pi-icon">=</span>Calculation
+      </div>
+      <div class="palette-item" draggable="true" data-type="var">
+        <span class="pi-icon">x</span>Variable
+      </div>
+      <div class="palette-item" draggable="true" data-type="image">
+        <span class="pi-icon">&#128444;</span>Image / Sketch
+      </div>
+    </div>
+
+    <h3>Quick Units</h3>
+    <div class="toolbox-hint">Click to insert at cursor in last-active expression.</div>
+    <div class="toolbox">
+      <div class="chip" data-insert=" cfm">cfm</div>
+      <div class="chip" data-insert=" gpm">gpm</div>
+      <div class="chip" data-insert=" L/s">L/s</div>
+      <div class="chip" data-insert=" fpm">fpm</div>
+      <div class="chip" data-insert=" °F">&deg;F</div>
+      <div class="chip" data-insert=" °C">&deg;C</div>
+      <div class="chip" data-insert=" ft">ft</div>
+      <div class="chip" data-insert=" m">m</div>
+      <div class="chip" data-insert=" psi">psi</div>
+      <div class="chip" data-insert=" kPa">kPa</div>
+      <div class="chip" data-insert=" inwc">inwc</div>
+      <div class="chip" data-insert=" mbh">mbh</div>
+      <div class="chip" data-insert=" BTU/h">BTU/h</div>
+      <div class="chip" data-insert=" kW">kW</div>
+      <div class="chip" data-insert=" ach">ach</div>
+    </div>
+
+    <h3>Quick Constants</h3>
+    <div class="toolbox">
+      <div class="chip chip-const" data-insert="(1.08 BTU minute / (ft^3 degF hour))" title="Air sensible: Q = 1.08 × CFM × ΔT — click to insert with full units, then × CFM × ΔT yields BTU/h">1.08<span class="chip-unit">BTU·min/(ft³·°F·h)</span></div>
+      <div class="chip chip-const" data-insert="(4.5 lb minute / (ft^3 hour))" title="Air total: Q = 4.5 × CFM × Δh — click to insert with full units, then × CFM × Δh(BTU/lb) yields BTU/h">4.5<span class="chip-unit">lb·min/(ft³·h)</span></div>
+      <div class="chip chip-const" data-insert="(0.68 BTU minute lb / (ft^3 grain hour))" title="Air latent: Q = 0.68 × CFM × ΔW — click to insert with full units, then × CFM × ΔW(grain/lb) yields BTU/h">0.68<span class="chip-unit">BTU·min·lb/(ft³·gr·h)</span></div>
+      <div class="chip chip-const" data-insert="(500 BTU minute / (gal degF hour))" title="Water: Q = 500 × GPM × ΔT — click to insert with full units, then × GPM × ΔT yields BTU/h">500<span class="chip-unit">BTU·min/(gal·°F·h)</span></div>
+      <div class="chip chip-const" data-insert="(0.24 BTU / (lb degF))" title="Air specific heat (BTU/lb·°F) — click to insert with full units">0.24<span class="chip-unit">BTU/(lb·°F)</span></div>
+      <div class="chip chip-const" data-insert="(62.4 lb / ft^3)" title="Water density (lb/ft³) — click to insert with full units">62.4<span class="chip-unit">lb/ft³</span></div>
+    </div>
+
+    <h3>Quick Equations</h3>
+    <div class="toolbox toolbox-col">
+      <div class="chip chip-eq" data-insert="(1.08 BTU minute / (ft^3 degF hour)) * cfm * degF">Q<sub>s</sub> = 1.08 × cfm × °F</div>
+      <div class="chip chip-eq" data-insert="(4.5 lb minute / (ft^3 hour)) * cfm * BTU/lb">Q<sub>t</sub> = 4.5 × cfm × BTU/lb</div>
+      <div class="chip chip-eq" data-insert="(0.68 BTU minute lb / (ft^3 grain hour)) * cfm * grain/lb">Q<sub>L</sub> = 0.68 × cfm × gr/lb</div>
+      <div class="chip chip-eq" data-insert="(500 BTU minute / (gal degF hour)) * gpm * degF">Q<sub>w</sub> = 500 × gpm × °F</div>
+      <div class="chip chip-eq" data-insert="cfm / ft^2 to fpm">v<sub>air</sub> = cfm / ft² → fpm</div>
+      <div class="chip chip-eq" data-insert="gpm / ft^2 to ft/min">v<sub>water</sub> = gpm / ft² → ft/min</div>
+      <div class="chip chip-eq" data-insert="cfm / ft^3 to 1/hour">ACH = cfm / ft³ → 1/h</div>
+    </div>
+
+    <h3>PDF References</h3>
+    <input type="file" id="pdfUpload" accept="application/pdf" style="display:none;" multiple>
+    <button class="sheet-btn" id="pdfUploadBtn" style="width:100%;">+ Upload PDF</button>
+    <div class="pdf-refs" id="pdfRefs"></div>
+
+    <h3>Export</h3>
+    <div class="export-actions">
+      <button class="btn-export" id="exportPdf">Export to PDF</button>
+      <button class="btn-export secondary" id="clearSheet">Clear all widgets</button>
+    </div>
+
+    <div class="hint-box">
+      <b>Tips:</b><br>
+      &bull; Calcs accept inline units &mdash; <code>1.08 * 1000 cfm * 20&deg;F</code>, trailing <code>=</code> is fine.<br>
+      &bull; Convert with <code>to</code>: <code>100 psi to kPa</code>.<br>
+      &bull; Variable widgets define names (e.g. <code>A = 5 ft</code>) reusable anywhere on the sheet.<br>
+      &bull; Drag widgets &mdash; they snap to a 20 px grid.<br>
+      &bull; Everything saves automatically.
+    </div>
+  </aside>
+
+  <!-- ============ CANVAS ============ -->
+  <div class="canvas-area" id="canvasArea">
+    <div class="paper" id="paper">
+
+      <div class="paper-header">
+        <div class="paper-header-logo">
+          <img src="data:image/png;base64,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" alt="Remedy Engineering">
+        </div>
+        <div class="paper-header-fields">
+          <div class="ph-field">
+            <label for="phProjectNo">Project No.:</label>
+            <input type="text" id="phProjectNo" placeholder="—">
+          </div>
+          <div class="ph-field">
+            <label for="phDate">Date:</label>
+            <input type="text" id="phDate" placeholder="YYYY-MM-DD">
+          </div>
+          <div class="ph-field">
+            <label for="phPreparedBy">Prepared By:</label>
+            <input type="text" id="phPreparedBy" placeholder="—">
+          </div>
+          <div class="ph-field">
+            <label>Page:</label>
+            <span class="ph-page" id="phPageDisplay">1 of 1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="paper-band">
+        <div class="pb-cell">
+          <label>Project:</label>
+          <textarea id="pbProject" rows="2" placeholder="Project name"></textarea>
+        </div>
+        <div class="pb-cell">
+          <label>Description:</label>
+          <textarea id="pbDescription" rows="2" placeholder="What this sheet covers"></textarea>
+        </div>
+      </div>
+
+      <div class="pages-wrap" id="pagesWrap"></div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Remedy Engineering &nbsp;|&nbsp; Math Scratchpad &nbsp;|&nbsp; Unit-aware calcs powered by math.js &middot; PDF export via html2pdf.js
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjs@12.4.1/lib/browser/math.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+<script>
+'use strict';
+
+/* ============================================================
+   GREETING
+============================================================ */
+(function() {
+  try {
+    var name = (localStorage.getItem('remedy.user.name') || localStorage.getItem('remedy.userName.v1') || '').trim();
+    var greet = document.getElementById('greet-text');
+    if (greet) greet.innerHTML = name ? 'Welcome, <strong>' + name + '</strong>.' : 'Welcome.';
+    var pencil = document.getElementById('greet-edit');
+    if (pencil) pencil.addEventListener('click', function() { window.location.href = '../Remedy_Profile.html'; });
+  } catch (_) {}
+})();
+
+function getUserName() {
+  return (localStorage.getItem('remedy.user.name') || localStorage.getItem('remedy.userName.v1') || '').trim();
+}
+
+/* ============================================================
+   STATE
+============================================================ */
+const STORAGE_KEY = 'remedy.scratchpad.v2';
+const GRID = 20;
+
+function uid(prefix) { return prefix + '_' + Math.random().toString(36).slice(2, 9); }
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+function freshPage() { return { id: uid('pg'), widgets: [] }; }
+
+function freshSheet(name) {
+  return {
+    id: uid('sheet'),
+    name: name || 'Untitled',
+    projectNo: '',
+    date: todayISO(),
+    preparedBy: getUserName(),
+    project: '',
+    description: '',
+    pages: [freshPage()],
+    pdfRefs: []
+  };
+}
+
+function migrate(s) {
+  // Convert v1 sheets (flat widgets) to v2 (pages)
+  if (s.widgets && !s.pages) {
+    s.pages = [{ id: uid('pg'), widgets: s.widgets }];
+    delete s.widgets;
+  }
+  if (!s.pages || s.pages.length === 0) s.pages = [freshPage()];
+  if (typeof s.projectNo === 'undefined') s.projectNo = s.project || '';
+  if (typeof s.preparedBy === 'undefined') s.preparedBy = s.by || getUserName();
+  if (typeof s.description === 'undefined') s.description = s.subject || '';
+  if (!s.project) s.project = '';
+  if (!s.pdfRefs) s.pdfRefs = [];
+  return s;
+}
+
+function loadState() {
+  // Try v2 first, then migrate v1
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.sheets && Object.keys(s.sheets).length) {
+        Object.keys(s.sheets).forEach(function(k) { migrate(s.sheets[k]); });
+        return s;
+      }
+    }
+  } catch (_) {}
+  try {
+    var rawV1 = localStorage.getItem('remedy.scratchpad.v1');
+    if (rawV1) {
+      var s1 = JSON.parse(rawV1);
+      if (s1 && s1.sheets) {
+        Object.keys(s1.sheets).forEach(function(k) { migrate(s1.sheets[k]); });
+        return s1;
+      }
+    }
+  } catch (_) {}
+  var first = freshSheet('Sheet 1');
+  return { activeId: first.id, sheets: { [first.id]: first } };
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
+}
+
+var state = loadState();
+var activeSheet = () => state.sheets[state.activeId];
+
+/* ============================================================
+   TOAST
+============================================================ */
+function toast(msg, isError) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   SHEET MANAGEMENT
+============================================================ */
+function renderSheetSelect() {
+  var sel = document.getElementById('sheetSelect');
+  sel.innerHTML = '';
+  Object.values(state.sheets).forEach(function(s) {
+    var opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    if (s.id === state.activeId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function switchSheet(id) {
+  if (!state.sheets[id]) return;
+  state.activeId = id;
+  saveState();
+  renderAll();
+}
+
+function newSheet() {
+  var name = prompt('Name for new sheet:', 'Sheet ' + (Object.keys(state.sheets).length + 1));
+  if (!name) return;
+  var s = freshSheet(name.trim());
+  state.sheets[s.id] = s;
+  state.activeId = s.id;
+  saveState();
+  renderAll();
+}
+
+function renameSheet() {
+  var s = activeSheet();
+  var name = prompt('Rename sheet:', s.name);
+  if (!name) return;
+  s.name = name.trim();
+  saveState();
+  renderAll();
+}
+
+function dupSheet() {
+  var s = activeSheet();
+  var copy = JSON.parse(JSON.stringify(s));
+  copy.id = uid('sheet');
+  copy.name = s.name + ' (copy)';
+  copy.pages.forEach(function(p) {
+    p.id = uid('pg');
+    p.widgets.forEach(function(w) { w.id = uid('w'); });
+  });
+  state.sheets[copy.id] = copy;
+  state.activeId = copy.id;
+  saveState();
+  renderAll();
+}
+
+function delSheet() {
+  if (Object.keys(state.sheets).length <= 1) {
+    toast('Cannot delete the only sheet.', true);
+    return;
+  }
+  var s = activeSheet();
+  if (!confirm('Delete sheet "' + s.name + '"? This cannot be undone.')) return;
+  delete state.sheets[s.id];
+  state.activeId = Object.keys(state.sheets)[0];
+  saveState();
+  renderAll();
+}
+
+/* ============================================================
+   META FIELDS
+============================================================ */
+function bindMeta() {
+  var s = activeSheet();
+  document.getElementById('phProjectNo').value = s.projectNo || '';
+  document.getElementById('phDate').value = s.date || '';
+  document.getElementById('phPreparedBy').value = s.preparedBy || getUserName();
+  document.getElementById('pbProject').value = s.project || '';
+  document.getElementById('pbDescription').value = s.description || '';
+  updatePageDisplay();
+}
+
+function updatePageDisplay() {
+  var s = activeSheet();
+  document.getElementById('phPageDisplay').textContent = '1 of ' + s.pages.length;
+}
+
+document.getElementById('phProjectNo').addEventListener('input', function(e) { activeSheet().projectNo = e.target.value; saveState(); });
+document.getElementById('phDate').addEventListener('input', function(e) { activeSheet().date = e.target.value; saveState(); });
+document.getElementById('phPreparedBy').addEventListener('input', function(e) { activeSheet().preparedBy = e.target.value; saveState(); });
+document.getElementById('pbProject').addEventListener('input', function(e) { activeSheet().project = e.target.value; saveState(); });
+document.getElementById('pbDescription').addEventListener('input', function(e) { activeSheet().description = e.target.value; saveState(); });
+
+/* ============================================================
+   UNIT HIGHLIGHTING (contenteditable expressions)
+============================================================ */
+var _unitCache = {};
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function tokenizeForHighlight(text) {
+  var tokens = [];
+  var i = 0;
+  while (i < text.length) {
+    if (text[i] === '°') {
+      var m = text.substr(i).match(/^°\s*[FCKR]/);
+      if (m) {
+        if (isUnitToken(m[0])) {
+          var rest1 = text.substr(i + m[0].length);
+          var pm1 = rest1.match(/^\s*\^\s*-?\d+/);
+          var ext1 = pm1 ? pm1[0].length : 0;
+          tokens.push({ kind: 'unit', text: text.substr(i, m[0].length + ext1) });
+          i += m[0].length + ext1;
+          continue;
+        }
+      }
+    }
+    if (/[A-Za-z_]/.test(text[i])) {
+      var j = i;
+      while (j < text.length && /[A-Za-z0-9_]/.test(text[j])) j++;
+      var ident = text.substr(i, j - i);
+      if (isUnitToken(ident)) {
+        var rest = text.substr(j);
+        var pm = rest.match(/^\s*\^\s*-?\d+/);
+        var ext = pm ? pm[0].length : 0;
+        tokens.push({ kind: 'unit', text: text.substr(i, j - i + ext) });
+        i = j + ext;
+        continue;
+      }
+      tokens.push({ kind: 'plain', text: ident });
+      i = j;
+      continue;
+    }
+    var k = i;
+    while (k < text.length && !/[A-Za-z_°]/.test(text[k])) k++;
+    tokens.push({ kind: 'plain', text: text.substr(i, k - i) });
+    i = k;
+  }
+  return tokens;
+}
+
+function isUnitToken(raw) {
+  if (_unitCache.hasOwnProperty(raw)) return _unitCache[raw];
+  var t = raw
+    .replace(/°\s*F/, 'degF')
+    .replace(/°\s*C/, 'degC')
+    .replace(/°\s*R/, 'degR')
+    .replace(/°\s*K/, 'K');
+  // Reserved keywords / constants / common funcs that aren't units
+  if (/^(to|mod|and|or|xor|not|true|false|null|sqrt|abs|sin|cos|tan|asin|acos|atan|log|ln|exp|pi|PI|e|i)$/.test(t)) {
+    _unitCache[raw] = false; return false;
+  }
+  var ok = false;
+  try {
+    if (typeof math !== 'undefined' && math.Unit && math.Unit.isValuelessUnit) {
+      ok = math.Unit.isValuelessUnit(t);
+    }
+  } catch (_) { ok = false; }
+  _unitCache[raw] = ok;
+  return ok;
+}
+
+function renderExprHTML(el, text) {
+  if (!text) { el.innerHTML = ''; return; }
+  var tokens = tokenizeForHighlight(text);
+  var html = '';
+  tokens.forEach(function(tok) {
+    var esc = escapeHtml(tok.text);
+    if (tok.kind === 'unit?' && isUnitToken(tok.text)) html += '<span class="unit-token">' + esc + '</span>';
+    else html += esc;
+  });
+  el.innerHTML = html;
+}
+
+function getCaretOffset(el) {
+  var sel = window.getSelection();
+  if (!sel || !sel.rangeCount) return 0;
+  var range = sel.getRangeAt(0);
+  if (!el.contains(range.endContainer) && el !== range.endContainer) return 0;
+  var pre = range.cloneRange();
+  pre.selectNodeContents(el);
+  pre.setEnd(range.endContainer, range.endOffset);
+  return pre.toString().length;
+}
+
+function setCaretOffset(el, offset) {
+  var sel = window.getSelection();
+  var range = document.createRange();
+  var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false);
+  var current = 0, node;
+  while ((node = walker.nextNode())) {
+    var len = node.nodeValue.length;
+    if (current + len >= offset) {
+      range.setStart(node, offset - current);
+      range.collapse(true);
+      sel.removeAllRanges(); sel.addRange(range);
+      return;
+    }
+    current += len;
+  }
+  range.selectNodeContents(el);
+  range.collapse(false);
+  sel.removeAllRanges(); sel.addRange(range);
+}
+
+function insertTextAtCaret(el, text) {
+  el.focus();
+  var sel = window.getSelection();
+  if (!sel.rangeCount) {
+    var t = document.createTextNode(text);
+    el.appendChild(t);
+    var r = document.createRange();
+    r.setStartAfter(t); r.setEndAfter(t);
+    sel.removeAllRanges(); sel.addRange(r);
+    return;
+  }
+  var range = sel.getRangeAt(0);
+  if (!el.contains(range.commonAncestorContainer) && range.commonAncestorContainer !== el) {
+    range.selectNodeContents(el); range.collapse(false);
+  }
+  range.deleteContents();
+  var node = document.createTextNode(text);
+  range.insertNode(node);
+  range.setStartAfter(node); range.setEndAfter(node);
+  sel.removeAllRanges(); sel.addRange(range);
+}
+
+function rehighlightAllExprs() {
+  document.querySelectorAll('.widget .w-expr').forEach(function(el) {
+    if (el.isContentEditable) renderExprHTML(el, el.textContent);
+  });
+}
+
+function wireContenteditableExpr(div, getter, setter) {
+  renderExprHTML(div, getter() || '');
+  div.addEventListener('input', function() {
+    // Normalize stray <br> when fully cleared so :empty placeholder shows
+    if (!div.textContent) div.innerHTML = '';
+    var caret = getCaretOffset(div);
+    setter(div.textContent);
+    renderExprHTML(div, div.textContent);
+    setCaretOffset(div, caret);
+    saveState();
+    recalcAll();
+  });
+  div.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') e.preventDefault();
+  });
+  div.addEventListener('paste', function(e) {
+    e.preventDefault();
+    var text = ((e.clipboardData || window.clipboardData).getData('text/plain') || '').replace(/\r?\n/g, ' ');
+    document.execCommand('insertText', false, text);
+  });
+}
+
+/* ============================================================
+   MATH ENGINE
+============================================================ */
+function preprocessExpr(expr) {
+  if (!expr) return '';
+  var s = String(expr).trim();
+  // Strip trailing = (and any whitespace before it)
+  s = s.replace(/\s*=\s*$/, '');
+  // Map °F / °C / °R to degF / degC / degR
+  s = s.replace(/°\s*F\b/g, 'degF')
+       .replace(/°\s*C\b/g, 'degC')
+       .replace(/°\s*R\b/g, 'degR')
+       .replace(/°\s*K\b/g, 'K');
+  return s;
+}
+
+function buildScope() {
+  var scope = {};
+  var s = activeSheet();
+  for (var pass = 0; pass < 3; pass++) {
+    s.pages.forEach(function(pg) {
+      pg.widgets.forEach(function(w) {
+        if (w.type === 'calc' && w.varName) {
+          var cnm = String(w.varName).trim();
+          if (!cnm || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(cnm)) return;
+          try {
+            var cv = math.evaluate(preprocessExpr(w.expr || '0'), scope);
+            scope[cnm] = cv;
+          } catch (_) {}
+          return;
+        }
+        if (w.type !== 'var' || !w.varName) return;
+        var nm = String(w.varName).trim();
+        if (!nm || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(nm)) return;
+        try {
+          var v = math.evaluate(preprocessExpr(w.varExpr || '0'), scope);
+          scope[nm] = v;
+        } catch (_) {}
+      });
+    });
+  }
+  return scope;
+}
+
+function formatResult(v) {
+  if (v == null) return '';
+  try {
+    function pickDec(n) { var a = Math.abs(n); return (a > 0 && a < 1) ? 3 : 2; }
+    function fixNum(n) { return isFinite(n) ? n.toFixed(pickDec(n)) : String(n); }
+    if (typeof v === 'number') return fixNum(v);
+    if (v && v.isUnit) {
+      var num;
+      try { num = v.toNumber(); } catch (_) { num = 0; }
+      return v.toString({ notation: 'fixed', precision: pickDec(num) });
+    }
+    if (v && typeof v.toString === 'function') {
+      return math.format(v, { notation: 'fixed', precision: 2 });
+    }
+    return String(v);
+  } catch (_) { return String(v); }
+}
+
+function evalExpr(expr, scope) {
+  var clean = preprocessExpr(expr);
+  if (!clean) return { ok: true, text: '' };
+  try {
+    var v = math.evaluate(clean, scope);
+    if (typeof v === 'function') return { ok: false, text: 'function (need arguments)' };
+    return { ok: true, text: formatResult(v), value: v };
+  } catch (e) {
+    return { ok: false, text: e.message || String(e) };
+  }
+}
+
+/* ============================================================
+   PAGE / WIDGET RENDERING
+============================================================ */
+function snap(v) { return Math.round(v / GRID) * GRID; }
+
+function defaultSize(type) {
+  switch (type) {
+    case 'text':  return { w: 200, h: 40 };
+    case 'calc':  return { w: 280, h: 100 };
+    case 'var':   return { w: 280, h: 40 };
+    case 'image': return { w: 200, h: 160 };
+  }
+  return { w: 200, h: 60 };
+}
+
+function defaultWidget(type, x, y) {
+  var sz = defaultSize(type);
+  var base = { id: uid('w'), type: type, x: snap(x), y: snap(y), w: sz.w, h: sz.h };
+  if (type === 'text')  return Object.assign(base, { text: '', heading: false });
+  if (type === 'calc')  return Object.assign(base, { label: '', expr: '', varName: '' });
+  if (type === 'var')   return Object.assign(base, { varName: '', varExpr: '' });
+  if (type === 'image') return Object.assign(base, { imgData: '' });
+  return base;
+}
+
+function renderPages() {
+  var wrap = document.getElementById('pagesWrap');
+  wrap.innerHTML = '';
+  var s = activeSheet();
+  var scope = buildScope();
+
+  s.pages.forEach(function(page, idx) {
+    var pgEl = document.createElement('div');
+    pgEl.className = 'page';
+    pgEl.dataset.pageId = page.id;
+
+    var lbl = document.createElement('div');
+    lbl.className = 'page-label';
+    lbl.textContent = 'Page ' + (idx + 1) + ' of ' + s.pages.length;
+    pgEl.appendChild(lbl);
+
+    var area = document.createElement('div');
+    area.className = 'widget-area';
+    area.dataset.pageId = page.id;
+    pgEl.appendChild(area);
+
+    page.widgets.forEach(function(w) {
+      area.appendChild(createWidgetEl(w, scope, page));
+    });
+
+    var footer = document.createElement('div');
+    footer.className = 'page-footer';
+    footer.innerHTML = '<span class="pf-left">REMEDY ENGINEERING</span>' +
+      '<span class="pf-right">Page ' + (idx + 1) + ' of ' + s.pages.length + ' &middot; remedyengineering.com</span>';
+    pgEl.appendChild(footer);
+
+    wrap.appendChild(pgEl);
+    wireDropZone(area, page);
+  });
+
+  updatePageDisplay();
+}
+
+function createWidgetEl(w, scope, page) {
+  var el = document.createElement('div');
+  el.className = 'widget type-' + w.type;
+  el.style.left = w.x + 'px';
+  el.style.top = w.y + 'px';
+  el.style.width = w.w + 'px';
+  el.style.height = w.h + 'px';
+  el.dataset.id = w.id;
+
+  var handle = document.createElement('div');
+  handle.className = 'widget-handle';
+  handle.innerHTML = '&#10018;';
+  handle.title = 'Drag to move';
+  el.appendChild(handle);
+
+  var del = document.createElement('button');
+  del.className = 'widget-delete';
+  del.innerHTML = '&times;';
+  del.title = 'Delete';
+  del.addEventListener('click', function(e) {
+    e.stopPropagation();
+    deleteWidget(w.id, page);
+  });
+  el.appendChild(del);
+
+  var resize = document.createElement('div');
+  resize.className = 'widget-resize';
+  el.appendChild(resize);
+
+  if (w.type === 'text') {
+    if (w.heading) el.classList.add('is-heading');
+    var ta = document.createElement('textarea');
+    ta.className = 'w-input';
+    ta.value = w.text || '';
+    ta.placeholder = 'Type text or heading…';
+    ta.style.height = (w.h - 14) + 'px';
+    ta.addEventListener('input', function() { w.text = ta.value; saveState(); });
+    el.appendChild(ta);
+    var boldBtn = document.createElement('button');
+    boldBtn.className = 'w-bold-toggle';
+    boldBtn.textContent = 'H';
+    boldBtn.title = 'Toggle heading style';
+    boldBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      w.heading = !w.heading;
+      saveState();
+      renderPages();
+    });
+    el.appendChild(boldBtn);
+  }
+  else if (w.type === 'calc') {
+    var lbl = document.createElement('input');
+    lbl.className = 'w-label-in';
+    lbl.placeholder = 'Label (optional)…';
+    lbl.value = w.label || '';
+    lbl.addEventListener('input', function() { w.label = lbl.value; saveState(); });
+    el.appendChild(lbl);
+
+    var expr = document.createElement('div');
+    expr.className = 'w-expr';
+    expr.contentEditable = 'true';
+    expr.spellcheck = false;
+    expr.setAttribute('data-placeholder', '1.08 * 1000 cfm * 20°F =');
+    wireContenteditableExpr(expr, function() { return w.expr; }, function(v) { w.expr = v; });
+    el.appendChild(expr);
+
+    var res = document.createElement('div');
+    res.className = 'w-result';
+    var r = evalExpr(w.expr, scope);
+    res.textContent = r.ok ? (r.text || '—') : ('⚠ ' + r.text);
+    if (!r.ok) res.classList.add('error');
+    el.appendChild(res);
+
+    var saveAs = document.createElement('input');
+    saveAs.className = 'w-label-in';
+    saveAs.placeholder = 'save as → name (optional)';
+    saveAs.value = w.varName || '';
+    saveAs.style.marginTop = '3px';
+    saveAs.addEventListener('input', function() {
+      w.varName = saveAs.value.trim();
+      saveState();
+      recalcAll();
+    });
+    el.appendChild(saveAs);
+  }
+  else if (w.type === 'var') {
+    var row = document.createElement('div');
+    row.className = 'w-row';
+    var nm = document.createElement('input');
+    nm.className = 'w-name';
+    nm.placeholder = 'name';
+    nm.value = w.varName || '';
+    nm.addEventListener('input', function() { w.varName = nm.value; saveState(); recalcAll(); });
+    var eq = document.createElement('div');
+    eq.className = 'w-eq';
+    eq.textContent = '=';
+    var exp = document.createElement('div');
+    exp.className = 'w-expr';
+    exp.contentEditable = 'true';
+    exp.spellcheck = false;
+    exp.setAttribute('data-placeholder', 'e.g. 5 ft');
+    wireContenteditableExpr(exp, function() { return w.varExpr; }, function(v) { w.varExpr = v; });
+    var vres = document.createElement('div');
+    vres.className = 'w-result';
+    var vr = evalExpr(w.varExpr, scope);
+    if (!vr.ok) { vres.classList.add('error'); vres.textContent = '⚠ ' + vr.text; }
+    else { vres.textContent = '→ ' + (vr.text || '—'); }
+    row.appendChild(nm); row.appendChild(eq); row.appendChild(exp); row.appendChild(vres);
+    el.appendChild(row);
+  }
+  else if (w.type === 'image') {
+    if (w.imgData) {
+      var img = document.createElement('img');
+      img.src = w.imgData;
+      el.appendChild(img);
+    } else {
+      var empty = document.createElement('div');
+      empty.className = 'img-empty';
+      empty.innerHTML = '<span class="img-icon">&#128444;</span>Click to upload image';
+      var fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      empty.addEventListener('click', function() { fileInput.click(); });
+      fileInput.addEventListener('change', function(e) {
+        var f = e.target.files[0];
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) { w.imgData = ev.target.result; saveState(); renderPages(); };
+        reader.readAsDataURL(f);
+      });
+      el.appendChild(empty);
+      el.appendChild(fileInput);
+    }
+  }
+
+  enableDrag(el, handle, w);
+  enableResize(el, resize, w);
+  el.addEventListener('mousedown', function() {
+    document.querySelectorAll('.widget.selected').forEach(function(o) { o.classList.remove('selected'); });
+    el.classList.add('selected');
+  });
+
+  return el;
+}
+
+function deleteWidget(id, page) {
+  page.widgets = page.widgets.filter(function(w) { return w.id !== id; });
+  saveState();
+  renderPages();
+}
+
+/* ============================================================
+   DRAG / RESIZE
+============================================================ */
+function enableDrag(el, handle, w) {
+  var dragging = false, startX, startY, origX, origY;
+  function onDown(e) {
+    var tag = (e.target.tagName || '').toLowerCase();
+    if (e.target !== el && e.target !== handle &&
+        (['input','textarea','button','select'].indexOf(tag) !== -1 || e.target.isContentEditable)) return;
+    if (e.target.classList.contains('widget-resize')) return;
+    if (e.target.classList.contains('widget-delete')) return;
+    dragging = true;
+    startX = e.clientX; startY = e.clientY;
+    origX = w.x; origY = w.y;
+    el.classList.add('dragging');
+    e.preventDefault();
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }
+  function onMove(e) {
+    if (!dragging) return;
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    w.x = Math.max(0, snap(origX + dx));
+    w.y = Math.max(0, snap(origY + dy));
+    el.style.left = w.x + 'px';
+    el.style.top = w.y + 'px';
+  }
+  function onUp() {
+    if (!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    saveState();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  el.addEventListener('mousedown', onDown);
+}
+
+function enableResize(el, handle, w) {
+  var resizing = false, startX, startY, origW, origH;
+  handle.addEventListener('mousedown', function(e) {
+    resizing = true;
+    startX = e.clientX; startY = e.clientY;
+    origW = w.w; origH = w.h;
+    e.stopPropagation(); e.preventDefault();
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  function onMove(e) {
+    if (!resizing) return;
+    var dw = e.clientX - startX;
+    var dh = e.clientY - startY;
+    w.w = Math.max(80, snap(origW + dw));
+    w.h = Math.max(40, snap(origH + dh));
+    el.style.width = w.w + 'px';
+    el.style.height = w.h + 'px';
+    var ta = el.querySelector('.type-text .w-input');
+    if (ta) ta.style.height = (w.h - 14) + 'px';
+  }
+  function onUp() {
+    if (!resizing) return;
+    resizing = false;
+    saveState();
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+}
+
+/* ============================================================
+   PALETTE → CANVAS
+============================================================ */
+var _draggingType = null;
+document.querySelectorAll('.palette-item').forEach(function(p) {
+  p.addEventListener('dragstart', function(e) {
+    _draggingType = p.dataset.type;
+    e.dataTransfer.setData('text/plain', _draggingType);
+    e.dataTransfer.effectAllowed = 'copy';
+    document.getElementById('app').classList.add('drop-zone-active');
+  });
+  p.addEventListener('dragend', function() {
+    _draggingType = null;
+    document.getElementById('app').classList.remove('drop-zone-active');
+  });
+});
+
+function wireDropZone(area, page) {
+  area.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  area.addEventListener('drop', function(e) {
+    e.preventDefault();
+    var type = e.dataTransfer.getData('text/plain') || _draggingType;
+    if (!type) return;
+    var rect = area.getBoundingClientRect();
+    var x = e.clientX - rect.left - 100;
+    var y = e.clientY - rect.top - 20;
+    var w = defaultWidget(type, Math.max(0, x), Math.max(0, y));
+    page.widgets.push(w);
+    saveState();
+    renderPages();
+  });
+}
+
+/* ============================================================
+   RECALC
+============================================================ */
+var _recalcQ = null;
+function recalcAll() {
+  clearTimeout(_recalcQ);
+  _recalcQ = setTimeout(function() {
+    var scope = buildScope();
+    var s = activeSheet();
+    document.querySelectorAll('.widget').forEach(function(el) {
+      var id = el.dataset.id;
+      var w = null;
+      for (var i = 0; i < s.pages.length && !w; i++) {
+        w = s.pages[i].widgets.find(function(x) { return x.id === id; });
+      }
+      if (!w) return;
+      if (w.type === 'calc') {
+        var r = evalExpr(w.expr, scope);
+        var res = el.querySelector('.w-result');
+        if (res) {
+          res.textContent = r.ok ? (r.text || '—') : ('⚠ ' + r.text);
+          res.classList.toggle('error', !r.ok);
+        }
+      } else if (w.type === 'var') {
+        var vr = evalExpr(w.varExpr, scope);
+        var vres = el.querySelector('.w-result');
+        if (vres) {
+          vres.classList.toggle('error', !vr.ok);
+          vres.textContent = vr.ok ? ('→ ' + (vr.text || '—')) : ('⚠ ' + vr.text);
+        }
+      }
+    });
+  }, 80);
+}
+
+/* ============================================================
+   PAGE CONTROLS
+============================================================ */
+document.getElementById('addPage').addEventListener('click', function() {
+  activeSheet().pages.push(freshPage());
+  saveState();
+  renderPages();
+});
+
+document.getElementById('delPage').addEventListener('click', function() {
+  var s = activeSheet();
+  if (s.pages.length <= 1) { toast('Need at least one page.', true); return; }
+  var last = s.pages[s.pages.length - 1];
+  if (last.widgets.length > 0 && !confirm('Remove last page? Its widgets will be deleted.')) return;
+  s.pages.pop();
+  saveState();
+  renderPages();
+});
+
+/* ============================================================
+   CLEAR
+============================================================ */
+document.getElementById('clearSheet').addEventListener('click', function() {
+  if (!confirm('Remove all widgets from this sheet?')) return;
+  activeSheet().pages.forEach(function(p) { p.widgets = []; });
+  saveState();
+  renderPages();
+});
+
+/* ============================================================
+   PDF REFERENCES
+============================================================ */
+function renderPdfRefs() {
+  var box = document.getElementById('pdfRefs');
+  box.innerHTML = '';
+  var refs = activeSheet().pdfRefs || [];
+  if (refs.length === 0) {
+    var empty = document.createElement('div');
+    empty.className = 'pdf-empty';
+    empty.textContent = 'No PDFs uploaded yet.';
+    box.appendChild(empty);
+    return;
+  }
+  refs.forEach(function(ref) {
+    var row = document.createElement('div');
+    row.className = 'pdf-ref-item';
+    var link = document.createElement('a');
+    link.href = ref.dataUrl;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = ref.name;
+    link.title = ref.name;
+    row.appendChild(link);
+    var rm = document.createElement('button');
+    rm.innerHTML = '&times;';
+    rm.title = 'Remove';
+    rm.addEventListener('click', function() {
+      activeSheet().pdfRefs = (activeSheet().pdfRefs || []).filter(function(r) { return r.id !== ref.id; });
+      saveState();
+      renderPdfRefs();
+    });
+    row.appendChild(rm);
+    box.appendChild(row);
+  });
+}
+
+document.getElementById('pdfUploadBtn').addEventListener('click', function() {
+  document.getElementById('pdfUpload').click();
+});
+
+document.getElementById('pdfUpload').addEventListener('change', function(e) {
+  var files = Array.from(e.target.files || []);
+  if (files.length === 0) return;
+  var s = activeSheet();
+  if (!s.pdfRefs) s.pdfRefs = [];
+  var pending = files.length;
+  files.forEach(function(f) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      s.pdfRefs.push({ id: uid('pdf'), name: f.name, dataUrl: ev.target.result });
+      pending--;
+      if (pending === 0) {
+        saveState();
+        renderPdfRefs();
+        toast('Uploaded ' + files.length + ' PDF' + (files.length > 1 ? 's' : '') + '.');
+      }
+    };
+    reader.onerror = function() {
+      pending--;
+      toast('Failed to read ' + f.name, true);
+    };
+    reader.readAsDataURL(f);
+  });
+  e.target.value = '';
+});
+
+/* ============================================================
+   PDF EXPORT
+============================================================ */
+function buildExportContainer() {
+  var s = activeSheet();
+  var headerOrig = document.querySelector('.paper-header');
+  var bandOrig = document.querySelector('.paper-band');
+  var pagesOrig = document.querySelectorAll('.pages-wrap .page');
+  var total = pagesOrig.length;
+
+  var container = document.createElement('div');
+  container.className = 'export-container';
+
+  var phVals = {
+    phProjectNo: s.projectNo || '—',
+    phDate: s.date || '—',
+    phPreparedBy: s.preparedBy || '—'
+  };
+  var bandVals = {
+    pbProject: s.project || '',
+    pbDescription: s.description || ''
+  };
+
+  for (var i = 0; i < total; i++) {
+    var sheet = document.createElement('div');
+    sheet.className = 'export-sheet';
+
+    var hdr = headerOrig.cloneNode(true);
+    hdr.querySelectorAll('input').forEach(function(inp) {
+      var span = document.createElement('span');
+      span.className = 'ph-static';
+      span.textContent = phVals[inp.id] || inp.value || '—';
+      inp.parentNode.replaceChild(span, inp);
+    });
+    var pageDisp = hdr.querySelector('#phPageDisplay');
+    if (pageDisp) pageDisp.textContent = (i + 1) + ' of ' + total;
+    sheet.appendChild(hdr);
+
+    var band = bandOrig.cloneNode(true);
+    band.querySelectorAll('textarea').forEach(function(ta) {
+      var div = document.createElement('div');
+      div.className = 'pb-static';
+      div.textContent = bandVals[ta.id] || ta.value || '';
+      ta.parentNode.replaceChild(div, ta);
+    });
+    sheet.appendChild(band);
+
+    var pg = pagesOrig[i].cloneNode(true);
+    pg.querySelectorAll('.widget-handle, .widget-delete, .widget-resize, .w-bold-toggle, .img-empty, input[type="file"]').forEach(function(n) {
+      n.remove();
+    });
+    var pf = pg.querySelector('.page-footer .pf-right');
+    if (pf) pf.innerHTML = 'Page ' + (i + 1) + ' of ' + total + ' &middot; remedyengineering.com';
+    var lbl = pg.querySelector('.page-label');
+    if (lbl) lbl.textContent = 'Page ' + (i + 1) + ' of ' + total;
+    pg.querySelectorAll('textarea.w-input').forEach(function(ta) {
+      var cs = window.getComputedStyle(ta);
+      var d = document.createElement('div');
+      d.style.whiteSpace = 'pre-wrap';
+      d.style.fontSize = cs.fontSize;
+      d.style.fontWeight = cs.fontWeight;
+      d.style.color = cs.color;
+      d.textContent = ta.value || '';
+      ta.parentNode.replaceChild(d, ta);
+    });
+    pg.querySelectorAll('input.w-label-in, input.w-name').forEach(function(inp) {
+      var cs = window.getComputedStyle(inp);
+      var span = document.createElement('span');
+      span.style.cssText = 'font-family:inherit;font-size:' + cs.fontSize + ';color:' + cs.color + ';font-weight:' + cs.fontWeight + ';display:block;padding:3px 5px;';
+      span.textContent = inp.value || '';
+      inp.parentNode.replaceChild(span, inp);
+    });
+    sheet.appendChild(pg);
+
+    container.appendChild(sheet);
+  }
+
+  return container;
+}
+
+document.getElementById('exportPdf').addEventListener('click', function() {
+  var s = activeSheet();
+  var filename = (s.name || 'Scratchpad').replace(/[^A-Za-z0-9_\-]/g, '_') + '.pdf';
+  document.querySelectorAll('.widget.selected').forEach(function(o) { o.classList.remove('selected'); });
+  toast('Generating PDF…');
+
+  var container = buildExportContainer();
+  document.body.appendChild(container);
+
+  var opt = {
+    margin: 0,
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.95 },
+    html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], before: '.export-sheet', avoid: '.widget' }
+  };
+
+  html2pdf().set(opt).from(container).save().then(function() {
+    if (container.parentNode) container.parentNode.removeChild(container);
+    toast('PDF saved.');
+  }).catch(function(err) {
+    if (container.parentNode) container.parentNode.removeChild(container);
+    toast('PDF failed: ' + (err && err.message || err), true);
+  });
+});
+
+/* ============================================================
+   SHEET CONTROL BINDINGS
+============================================================ */
+document.getElementById('sheetSelect').addEventListener('change', function(e) { switchSheet(e.target.value); });
+document.getElementById('newSheet').addEventListener('click', newSheet);
+document.getElementById('renameSheet').addEventListener('click', renameSheet);
+document.getElementById('dupSheet').addEventListener('click', dupSheet);
+document.getElementById('delSheet').addEventListener('click', delSheet);
+
+/* ============================================================
+   RENDER
+============================================================ */
+function renderAll() {
+  renderSheetSelect();
+  bindMeta();
+  renderPages();
+  renderPdfRefs();
+}
+
+function seedSampleIfEmpty() {
+  var s = activeSheet();
+  if (s._seeded) return;
+  if (s.pages.length === 1 && s.pages[0].widgets.length === 0) {
+    s._seeded = true;
+    var pg = s.pages[0];
+    pg.widgets.push({ id: uid('w'), type: 'text', x: 40, y: 20, w: 380, h: 40, text: 'Sensible heat example', heading: true });
+    pg.widgets.push({ id: uid('w'), type: 'calc', x: 40, y: 80, w: 360, h: 80, label: 'Sensible heat (Q = 1.08 × CFM × ΔT)', expr: '1.08 * 1000 cfm * 20 degF =' });
+    pg.widgets.push({ id: uid('w'), type: 'calc', x: 40, y: 180, w: 360, h: 80, label: 'Convert pressure', expr: '100 psi to kPa' });
+    pg.widgets.push({ id: uid('w'), type: 'text', x: 40, y: 280, w: 580, h: 60, text: 'Try inline math: 5 ft * 3 ft, sqrt(2), 30 degC to degF — no variable widget needed. Use Variable widgets when you want to reuse a value across the sheet.', heading: false });
+    saveState();
+  }
+}
+
+seedSampleIfEmpty();
+renderAll();
+
+function waitForMath(cb, tries) {
+  tries = tries || 0;
+  if (typeof math !== 'undefined') { cb(); return; }
+  if (tries > 50) { toast('Math engine failed to load.', true); return; }
+  setTimeout(function() { waitForMath(cb, tries + 1); }, 100);
+}
+waitForMath(function() {
+  try { math.createUnit('cfm',  { definition: '1 ft^3/min',   aliases: ['CFM'] }); } catch(e){}
+  try { math.createUnit('gpm',  { definition: '1 gallon/min', aliases: ['GPM'] }); } catch(e){}
+  try { math.createUnit('mbh',  { definition: '1000 BTU/h',   aliases: ['MBH'] }); } catch(e){}
+  try { math.createUnit('ach',  { definition: '1/hour',       aliases: ['ACH'] }); } catch(e){}
+  try { math.createUnit('inwc', { definition: '1 inH2O',      aliases: ['inWC','in_wc'] }); } catch(e){}
+  try { math.createUnit('fpm',  { definition: '1 ft/min',     aliases: ['FPM'] }); } catch(e){}
+  try { math.createUnit('iph',  { definition: '1 inch/hour',  aliases: ['IPH'] }); } catch(e){}
+  _unitCache = {};
+  rehighlightAllExprs();
+  recalcAll();
+});
+
+/* ============================================================
+   CHIP INSERTION — click a sidebar chip to insert at cursor
+============================================================ */
+var _lastInput = null;
+document.getElementById('canvasArea').addEventListener('focusin', function(e) {
+  if (e.target.classList && e.target.classList.contains('w-expr')) {
+    _lastInput = e.target;
+  }
+});
+document.querySelectorAll('.chip').forEach(function(c) {
+  c.addEventListener('mousedown', function(e) {
+    // Prevent focus stealing so _lastInput remains the target expression
+    e.preventDefault();
+  });
+  c.addEventListener('click', function() {
+    var txt = c.getAttribute('data-insert');
+    if (txt === null) txt = c.textContent;
+    if (!_lastInput || !document.body.contains(_lastInput)) {
+      toast('Click into a calc or variable expression first, then click a chip.', true);
+      return;
+    }
+    if (_lastInput.isContentEditable) {
+      insertTextAtCaret(_lastInput, txt);
+      _lastInput.dispatchEvent(new Event('input', { bubbles: true }));
+      return;
+    }
+    var s = _lastInput.selectionStart;
+    var e2 = _lastInput.selectionEnd;
+    if (typeof s !== 'number') { s = _lastInput.value.length; e2 = s; }
+    if (typeof _lastInput.setRangeText === 'function') {
+      _lastInput.setRangeText(txt, s, e2, 'end');
+    } else {
+      var v = _lastInput.value;
+      _lastInput.value = v.slice(0, s) + txt + v.slice(e2);
+      var pos = s + txt.length;
+      _lastInput.setSelectionRange(pos, pos);
+    }
+    _lastInput.focus();
+    _lastInput.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+});
+</script>
+<!-- ============ REMEDY FEEDBACK WIDGET ============ -->
+<style>
+  #remedy-fb-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+    background: var(--orange); color: var(--on-dark); border: none;
+    padding: 12px 18px; border-radius: 28px;
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif; font-size: 13px;
+    font-weight: bold; letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    cursor: pointer; transition: background 0.15s, transform 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-fab:hover { background: var(--orange-d); transform: translateY(-2px); }
+  #remedy-fb-fab .fb-icon { font-size: 16px; }
+  #remedy-fb-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(43,43,43,0.55); z-index: 9100;
+    display: none; align-items: center; justify-content: center;
+  }
+  #remedy-fb-overlay.open { display: flex; }
+  #remedy-fb-modal {
+    background: var(--white); width: 480px; max-width: 92vw; max-height: 88vh;
+    overflow-y: auto;
+    border-top: 5px solid var(--orange);
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
+    color: var(--ink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }
+  #remedy-fb-modal .fb-head {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  #remedy-fb-modal .fb-head h2 { margin: 0; font-size: 18px; color: var(--ink); }
+  #remedy-fb-modal .fb-head .fb-x {
+    background: transparent; border: none; font-size: 24px;
+    cursor: pointer; color: var(--grey-l); line-height: 1; padding: 0 4px;
+  }
+  #remedy-fb-modal .fb-head .fb-x:hover { color: var(--bad); }
+  #remedy-fb-modal .fb-body { padding: 16px 20px; }
+  #remedy-fb-modal .fb-row { margin-bottom: 14px; }
+  #remedy-fb-modal label {
+    display: block; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange-d); margin-bottom: 4px;
+  }
+  #remedy-fb-modal .fb-page-display {
+    font-size: 13px; color: var(--ink); font-weight: bold;
+    padding: 6px 10px; background: var(--cream);
+    border-left: 3px solid var(--orange);
+  }
+  #remedy-fb-modal select,
+  #remedy-fb-modal textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    border: 1px solid var(--border); padding: 7px 9px;
+    background: var(--white); color: var(--ink);
+    box-sizing: border-box;
+  }
+  #remedy-fb-modal textarea { min-height: 110px; resize: vertical; }
+  #remedy-fb-modal select:focus,
+  #remedy-fb-modal textarea:focus { outline: 2px solid var(--orange); outline-offset: -1px; }
+  #remedy-fb-modal .fb-screenshot-note {
+    background: var(--cream); border-left: 3px solid var(--lime);
+    padding: 8px 10px; font-size: 11px; color: var(--grey);
+    line-height: 1.4;
+  }
+  #remedy-fb-modal .fb-screenshot-note b { color: var(--orange-d); }
+  #remedy-fb-modal .fb-foot {
+    padding: 14px 20px; background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot button {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    padding: 8px 16px; border: none; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel {
+    background: var(--white); color: var(--ink); border: 1px solid var(--border);
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel:hover { background: var(--bg); }
+  #remedy-fb-modal .fb-foot .fb-send {
+    background: var(--lime); color: var(--on-dark);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot .fb-send:hover { background: var(--lime-d); }
+  #remedy-fb-modal .fb-foot .fb-send:disabled {
+    background: var(--border); cursor: not-allowed; opacity: 0.85;
+  }
+  #remedy-fb-modal .fb-spinner {
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: remedy-fb-spin 0.7s linear infinite;
+    display: none;
+  }
+  #remedy-fb-modal .fb-foot .fb-send.is-sending .fb-spinner { display: inline-block; }
+  @keyframes remedy-fb-spin { to { transform: rotate(360deg); } }
+  #remedy-fb-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 16px; font-family: Calibri,sans-serif; font-size: 13px;
+    border-left: 4px solid var(--lime); z-index: 9200;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    max-width: 360px;
+  }
+  #remedy-fb-toast.show { opacity: 1; transform: translateY(0); }
+  @media print { #remedy-fb-fab, #remedy-fb-overlay, #remedy-fb-toast { display: none !important; } }
+</style>
+
+<button id="remedy-fb-fab" type="button" aria-label="Send feedback">
+  <span class="fb-icon">&#9993;</span><span>Feedback</span>
+</button>
+
+<div id="remedy-fb-overlay" role="dialog" aria-modal="true" aria-labelledby="remedy-fb-title">
+  <div id="remedy-fb-modal">
+    <div class="fb-head">
+      <h2 id="remedy-fb-title">Send Feedback</h2>
+      <button class="fb-x" id="remedy-fb-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="fb-body">
+      <div class="fb-row">
+        <label>Page</label>
+        <div class="fb-page-display" id="remedy-fb-page">&mdash;</div>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-type">Type</label>
+        <select id="remedy-fb-type">
+          <option>Bug</option>
+          <option>Suggestion</option>
+          <option>Question</option>
+          <option>General</option>
+        </select>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-comment">Comments</label>
+        <textarea id="remedy-fb-comment" placeholder="What happened, what you expected, or what you'd like added&hellip;"></textarea>
+      </div>
+      <div class="fb-row">
+        <div class="fb-screenshot-note">
+          <b>Need to share a screenshot?</b> Email it separately to Colson and reference this page name &mdash; the page name is included automatically with every feedback message.
+        </div>
+      </div>
+    </div>
+    <div class="fb-foot">
+      <button class="fb-cancel" id="remedy-fb-cancel" type="button">Cancel</button>
+      <button class="fb-send" id="remedy-fb-send" type="button">
+        <span class="fb-spinner"></span>
+        <span class="fb-send-label">Send Feedback</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="remedy-fb-toast"></div>
+
+<script>
+(function() {
+  'use strict';
+  var ACCESS_KEY = 'aab66b178e7f443592bd3c906d930053';
+  var ENDPOINT = 'https://formly.email/submit';
+
+  var fab = document.getElementById('remedy-fb-fab');
+  var overlay = document.getElementById('remedy-fb-overlay');
+  var closeBtn = document.getElementById('remedy-fb-close');
+  var cancelBtn = document.getElementById('remedy-fb-cancel');
+  var sendBtn = document.getElementById('remedy-fb-send');
+  var sendLabel = sendBtn.querySelector('.fb-send-label');
+  var typeSel = document.getElementById('remedy-fb-type');
+  var commentEl = document.getElementById('remedy-fb-comment');
+  var pageEl = document.getElementById('remedy-fb-page');
+  var toastEl = document.getElementById('remedy-fb-toast');
+
+  function getPageLabel() {
+    var t = (document.title || '').trim();
+    if (t) return t;
+    var p = location.pathname.split('/').pop() || 'Unknown';
+    return p.replace(/\.html?$/i, '').replace(/_/g, ' ');
+  }
+  function lsGet(k) {
+    try { return (localStorage.getItem(k) || '').trim(); } catch (_) { return ''; }
+  }
+  function getUserName() {
+    return lsGet('remedy.userName.v1') || lsGet('remedy.user.name');
+  }
+  function getUserEmail() {
+    return lsGet('remedy.email.v1') || lsGet('remedy.user.email') || lsGet('remedy.userEmail.v1');
+  }
+
+  function toast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.style.borderLeftColor = isError ? '#B00000' : '#99a668';
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 3500);
+  }
+
+  function openModal() {
+    pageEl.textContent = getPageLabel();
+    overlay.classList.add('open');
+    setTimeout(function(){ commentEl.focus(); }, 30);
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  fab.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+
+  function setSending(isSending) {
+    sendBtn.disabled = isSending;
+    sendBtn.classList.toggle('is-sending', isSending);
+    sendLabel.textContent = isSending ? 'Sending…' : 'Send Feedback';
+    cancelBtn.disabled = isSending;
+  }
+
+  sendBtn.addEventListener('click', function() {
+    var comment = (commentEl.value || '').trim();
+    if (!comment) {
+      toast('Please add a comment before sending.', true);
+      commentEl.focus();
+      return;
+    }
+
+    var name = getUserName() || '(not set)';
+    var email = getUserEmail() || '(not set in profile)';
+    var page = getPageLabel();
+    var type = typeSel.value;
+    var when = new Date().toLocaleString();
+
+    var fd = new FormData();
+    fd.append('access_key', ACCESS_KEY);
+    fd.append('subject', 'Remedy Tools Feedback: ' + type + ' — ' + page);
+    fd.append('from_name', 'Remedy Tools Feedback');
+    if (email && email.indexOf('@') > 0) fd.append('replyto', email);
+    fd.append('Tester', name);
+    fd.append('Tester Email', email);
+    fd.append('Page', page);
+    fd.append('URL', location.href);
+    fd.append('Type', type);
+    fd.append('Submitted', when);
+    fd.append('Comments', comment);
+
+    setSending(true);
+
+    fetch(ENDPOINT, { method: 'POST', body: fd })
+      .then(function(res) { return res.json().then(function(json){ return { ok: res.ok, json: json }; }); })
+      .then(function(r) {
+        if (r.ok && r.json && r.json.success) {
+          toast('Feedback sent — thanks!');
+          setTimeout(function(){
+            closeModal();
+            commentEl.value = '';
+            typeSel.selectedIndex = 0;
+          }, 400);
+        } else {
+          var msg = (r.json && r.json.message) ? r.json.message : 'Server rejected the submission.';
+          toast('Could not send: ' + msg, true);
+        }
+      })
+      .catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Network error.';
+        toast('Send failed: ' + msg + ' — check your connection or firewall.', true);
+      })
+      .finally(function() {
+        setSending(false);
+      });
+  });
+})();
+</script>
+<!-- ============ /REMEDY FEEDBACK WIDGET ============ -->
+
+</body>
+</html>

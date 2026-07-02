@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="../shared/theme.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAV Box Sizing — Remedy Engineering</title>
+<style>
+  :root {
+    --charcoal:#2B2B2B; --orange:#ef702d; --orange-d:#c45a1e;
+    --amber:#F0A010; --lime:#99a668; --lime-d:#839053;
+    --pale-or:#fde8d5; --pale-lime:#e8edda; --cream:#FFF4E0;
+    --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F4F4F4;
+  }
+  * { box-sizing: border-box; }
+  html { margin:0; padding:0; scrollbar-gutter: stable; }
+  body { margin:0; padding:0; }
+  body {
+    font-family: Calibri, "Segoe UI", Tahoma, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+  }
+  a { color: var(--orange-d); }
+
+  /* ======== HEADER (canonical) ======== */
+  .header {
+    background: var(--white, var(--white));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border, var(--border));
+    gap: 18px; flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 18px; }
+  .header img { height: 52px; display: block; }
+  .header-divider { width: 1px; height: 44px; background: var(--border, var(--border)); }
+  .header-titles { line-height: 1.1; }
+  .header .eyebrow {
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange-d, var(--orange-d)); margin-bottom: 4px;
+  }
+  .header h1 {
+    margin: 0; font-size: 22px; font-weight: bold;
+    color: var(--ink, var(--ink)); letter-spacing: 0.3px;
+  }
+
+  /* ======== GREETING (canonical) ======== */
+  .greeting {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--grey, var(--grey));
+  }
+  .greeting strong { color: var(--ink, var(--ink)); font-weight: 600; }
+  .greeting .pencil-btn {
+    background: transparent; border: none; padding: 2px 4px;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    color: var(--grey-l, var(--grey-l));
+    opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .greeting:hover .pencil-btn { opacity: 1; }
+  .greeting .pencil-btn:hover { color: var(--orange, var(--orange)); }
+
+  /* ======== ACCENT STRIPES (canonical) ======== */
+  .accent-stripes { display: flex; height: 5px; }
+  .accent-stripes span { flex: 1; }
+  .accent-stripes .s-charcoal { background: var(--charcoal, var(--charcoal)); }
+  .accent-stripes .s-orange   { background: var(--orange, var(--orange)); }
+  .accent-stripes .s-lime     { background: var(--lime-d, var(--lime-d)); }
+
+  /* ======== TAB NAV (canonical) ======== */
+  .tabnav {
+    background: var(--charcoal, var(--charcoal));
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    padding: 0 12px;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px;
+    color: rgba(255,244,224,0.72);
+    text-decoration: none;
+    font-size: 12px; font-weight: bold;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .tab:hover { color: var(--on-dark); background: var(--charcoal-2, var(--charcoal-2)); }
+  .tab.is-active {
+    color: var(--on-dark);
+    border-bottom-color: var(--orange, var(--orange));
+    background: var(--charcoal-2, var(--charcoal-2));
+  }
+  .tab .tab-dot { width: 7px; height: 7px; background: var(--lime, var(--lime)); display: inline-block; }
+  .tab.is-active .tab-dot { background: var(--orange, var(--orange)); }
+  @media (max-width: 800px) {
+    .tab { padding: 12px 14px; font-size: 11px; letter-spacing: 1.5px; }
+  }
+  @media (max-width: 640px) {
+    .header { padding: 10px 16px; gap: 12px; }
+    .header img { height: 40px; }
+    .header-divider { height: 36px; }
+    .header h1 { font-size: 18px; }
+    .header .eyebrow { font-size: 10px; letter-spacing: 1.5px; }
+  }
+  .accent-bar {
+    height: 4px;
+    background: var(--orange);
+  }
+
+
+  .container {
+    max-width: 1280px;
+    margin: 18px auto;
+    padding: 0 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 980px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card-head {
+    background: var(--charcoal);
+    color: var(--on-dark);
+    font-weight: bold;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 9px 14px;
+    border-bottom: 3px solid var(--orange);
+  }
+  .card-body {
+    padding: 16px 18px 18px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .control-row label {
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--grey);
+    min-width: 110px;
+  }
+  select, input[type="number"] {
+    flex: 1;
+    font-family: inherit;
+    font-size: 15px;
+    padding: 9px 10px;
+    border: 2px solid var(--charcoal);
+    background: var(--white);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.1s ease, box-shadow 0.1s ease;
+  }
+  select:focus, input[type="number"]:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(240,96,32,0.15);
+  }
+
+  .units-toggle {
+    display: inline-flex;
+    border: 2px solid var(--charcoal);
+  }
+  .units-toggle button {
+    background: var(--white);
+    color: var(--ink);
+    border: 0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .units-toggle button.active {
+    background: var(--orange);
+    color: var(--on-dark);
+  }
+
+  .readout {
+    background: var(--cream);
+    border-left: 4px solid var(--orange);
+    padding: 14px 16px;
+    margin-top: 12px;
+  }
+  .readout .ro-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 4px;
+  }
+  .readout .ro-size {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--orange-d);
+    line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .readout .ro-range {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .readout .ro-sub {
+    font-size: 13px;
+    color: var(--grey);
+  }
+
+  .pick-result {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: var(--pale-lime);
+    border-left: 4px solid var(--lime-d);
+  }
+  .pick-result.warn {
+    background: #FFF1E5;
+    border-left-color: var(--orange-d);
+  }
+  .pick-result.bad {
+    background: #FBE5D6;
+    border-left-color: var(--bad);
+  }
+  .pick-result .pr-label {
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin-bottom: 4px;
+  }
+  .pick-result .pr-headline {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .pick-result .pr-detail {
+    font-size: 13px;
+    color: var(--grey);
+  }
+
+  .table-card {
+    grid-column: 1 / -1;
+  }
+  table.sdv {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.sdv th, table.sdv td {
+    padding: 8px 10px;
+    text-align: right;
+    border-bottom: 1px solid var(--hair);
+  }
+  table.sdv th:first-child, table.sdv td:first-child {
+    text-align: left;
+  }
+  table.sdv thead th {
+    background: var(--charcoal);
+    color: var(--on-dark);
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 3px solid var(--orange);
+  }
+  table.sdv th.col-pref, table.sdv td.col-pref { background: rgba(153,166,104,0.16); }
+  table.sdv tbody tr:hover { background: #FAFAFA; }
+  table.sdv tbody tr.selected {
+    background: var(--cream);
+  }
+  table.sdv tbody tr.selected td.col-pref { background: var(--cream); }
+  table.sdv tbody tr.selected td {
+    font-weight: bold;
+    color: var(--orange-d);
+    border-bottom-color: var(--orange);
+  }
+
+  .note {
+    margin: 12px 18px 16px;
+    padding: 10px 14px;
+    background: #FFFBF0;
+    border-left: 4px solid var(--amber);
+    font-size: 12px;
+    color: var(--grey);
+    line-height: 1.5;
+  }
+  .note b { color: var(--ink); }
+
+  /* ============ ACHIEVEMENT TOAST ============ */
+  .ach-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    cursor: pointer;
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--charcoal, var(--charcoal)); color: var(--on-dark, var(--on-dark));
+    padding: 14px 18px; max-width: 340px;
+    border-left: 4px solid var(--orange, #e8862a);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 9999;
+  }
+  .ach-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .ach-toast-emoji { font-size: 28px; line-height: 1; flex-shrink: 0; }
+  .ach-toast-text { display: flex; flex-direction: column; gap: 2px; }
+  .ach-toast-label {
+    font-size: 9px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--orange, #e8862a);
+  }
+  .ach-toast-title { font-size: 14px; font-weight: bold; }
+  .ach-toast-desc { font-size: 11px; color: rgba(255,244,224,0.7); }
+  .ach-toast-reward { font-size: 10px; color: var(--orange-l, var(--orange-l)); font-style: italic; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="data:image/png;base64,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" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · HVAC Tool</div>
+      <h1>VAV Box Sizing</h1>
+    </div>
+  </div>
+
+  <div class="greeting" id="greeting">
+    <span id="greet-text">Welcome.</span>
+    <button class="pencil-btn" id="greet-edit" title="Edit profile" aria-label="Edit profile">&#9998;</button>
+  </div>
+</div>
+<div class="accent-stripes" aria-hidden="true">
+  <span class="s-charcoal"></span>
+  <span class="s-orange"></span>
+  <span class="s-lime"></span>
+</div>
+<nav class="tabnav" aria-label="Primary">
+  <a class="tab" href="../Remedy_Home.html"><span class="tab-dot"></span>Home</a>
+  <a class="tab is-active" href="../Remedy_Tools.html"><span class="tab-dot"></span>Tools</a>
+  <a class="tab" href="../Training_Library.html"><span class="tab-dot"></span>Documentation</a>
+</nav>
+<div class="accent-bar"></div>
+
+<div class="container">
+
+  <!-- Size picker card -->
+  <div class="card">
+    <div class="card-head">Pick a Size</div>
+    <div class="card-body">
+      <div class="control-row">
+        <label for="sizeSel">Inlet size</label>
+        <select id="sizeSel"></select>
+      </div>
+      <div class="control-row">
+        <label>Units</label>
+        <div class="units-toggle" role="group">
+          <button id="unitIp" class="active" type="button">CFM</button>
+          <button id="unitSi" type="button">L/s</button>
+        </div>
+      </div>
+
+      <div class="readout" id="readout">
+        <div class="ro-label">Selected size</div>
+        <div class="ro-size" id="roSize">—</div>
+        <div class="ro-range" id="roRange">—</div>
+        <div class="ro-sub" id="roSub">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reverse-lookup card -->
+  <div class="card">
+    <div class="card-head">Find Size for a Target Flow</div>
+    <div class="card-body">
+      <div class="control-row">
+        <label for="tgtFlow">Target flow</label>
+        <input id="tgtFlow" type="number" min="0" step="1" placeholder="e.g. 650">
+      </div>
+      <div class="control-row">
+        <label>Units</label>
+        <div class="units-toggle" role="group">
+          <button id="tgtIp" class="active" type="button">CFM</button>
+          <button id="tgtSi" type="button">L/s</button>
+        </div>
+      </div>
+
+      <div class="pick-result" id="pickResult">
+        <div class="pr-label">Recommendation</div>
+        <div class="pr-headline">Enter a target flow above</div>
+        <div class="pr-detail">We'll pick the smallest box that can deliver it, and call out if you're outside the range.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Selection guidance -->
+  <div class="card table-card">
+    <div class="card-head">How to Select — 2,000 FPM vs 80% of Max</div>
+    <div class="card-body">
+      <p style="margin:0 0 12px;font-size:13px;line-height:1.55;">
+        Two methods set how much air you push through a given inlet. Remedy recommends the
+        <b>2,000 FPM selection</b> over sizing to 80% of the box maximum.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:var(--pale-lime);border-left:4px solid var(--lime-d);padding:12px 14px;">
+          <div style="font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:var(--lime-d);margin-bottom:5px;">Preferred · 2,000 FPM</div>
+          <div style="font-size:13px;line-height:1.5;">Sizes the box to a constant 2,000 FPM inlet velocity. Lower velocity means lower pressure drop, less noise, and steadier control — so the box is much easier to balance. Use this by default.</div>
+        </div>
+        <div style="background:var(--cream);border-left:4px solid var(--orange-d);padding:12px 14px;">
+          <div style="font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:var(--orange-d);margin-bottom:5px;">80% of 1.5″ Max</div>
+          <div style="font-size:13px;line-height:1.5;">Pushes air to 80% of the box's full-open (1.5″ w.g.) maximum. It fits a smaller, cheaper box, but runs at higher velocity — more noise, more pressure drop, and harder to balance.</div>
+        </div>
+      </div>
+      <div class="note" style="margin:14px 0 0;">
+        <b>Don't spec below Size 6.</b> Sizes 4, 5 and 6 are the same physical box — the only difference is that the 4″ and 5″ inlets ship with a duct reducer, which just hurts us when the system is being balanced. When the math lands on a 4 or 5, use <b>Size 6</b> instead. A smaller size can work if you genuinely need its lower minimum, but Size 6 is preferred.
+      </div>
+    </div>
+  </div>
+
+  <!-- Full sizing table -->
+  <div class="card table-card">
+    <div class="card-head">EH Price SDV — Sizing Table</div>
+    <div class="note">
+      <b>Source:</b> EH Price SDV product data. <b>Min</b> is the controllable low end. <b>2,000 FPM</b> is Remedy's preferred selection point (highlighted) — a constant 2,000 FPM inlet velocity. <b>80% Max</b> is the rated high end at 80% of full-open (1.5″ w.g.) velocity. Selected row highlighted in cream.
+    </div>
+    <table class="sdv">
+      <thead>
+        <tr>
+          <th>Inlet size</th>
+          <th>Min CFM</th>
+          <th class="col-pref">2,000 FPM CFM</th>
+          <th>80% Max CFM</th>
+          <th>Min L/s</th>
+          <th class="col-pref">2,000 FPM L/s</th>
+          <th>80% Max L/s</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   ACHIEVEMENTS SYSTEM
+   ============================================================ */
+var __achievementsAPI = (function() {
+  var PREFIX = 'remedy.ach.';
+  var REGISTRY = [
+    // ── Unit Converter ──
+    { id: 'uc_first_convert',    emoji: '📐', title: 'Baby\'s First Conversion',    desc: 'You converted a unit. The engineering world trembles at your potential.' , reward: 'One (1) mass-produced participation ribbon.' },
+    { id: 'uc_hot_take',         emoji: '🌡️', title: 'Thermodynamic Personality',   desc: 'You converted a temperature. The thermostat war in your office rages on.' , reward: 'Ownership of exactly zero thermostats.' },
+    { id: 'uc_bilingual',        emoji: '🌍', title: 'Renaissance Engineer',        desc: 'Used every unit category. Your versatility is almost suspicious.' , reward: 'An honorary degree from a university we made up.' },
+    { id: 'uc_going_in_circles', emoji: '🔁', title: 'The Round Trip',              desc: 'Converted a value then immediately converted it back. We\'ve all been there.' , reward: 'A round-trip ticket to nowhere.' },
+    { id: 'uc_power_user',       emoji: '💯', title: 'Quantity Over Quality',       desc: '100 conversions. At this point you should probably just memorize the formula.' , reward: 'A lanyard that reads: Adequate.' },
+    { id: 'uc_absolute_zero',    emoji: '❄️', title: 'Absolute Zero Chill',         desc: '0 Kelvin. Nothing is colder than this except your office\'s server room.' , reward: 'A blanket. You clearly need one.' },
+    { id: 'uc_mystery',          emoji: '❓', title: 'The Audacity',                desc: 'You searched for a unit that doesn\'t exist. Points for confidence.' , reward: 'Nothing. Confidence is its own reward.' },
+    { id: 'uc_legend',           emoji: '🏛️', title: 'Professional Unit Botherer',  desc: '1,000 conversions. Google is free, but here we are.' , reward: 'A calculator. Since you clearly refuse to use one.' },
+    // ── Duct Sizer ──
+    { id: 'ds_first_duct',       emoji: '📏', title: 'Into the Void',               desc: 'You sized your first duct. Somewhere, an HVAC system just got a little less wrong.' , reward: 'A handshake from a man named Gerald.' },
+    { id: 'ds_design_friction',  emoji: '🎯', title: 'The Sweet Spot',              desc: '0.08–0.10 in.w.g./100ft. The engineering equivalent of a perfect parallel park.' , reward: 'Fifteen seconds of respectful silence.' },
+    { id: 'ds_speed_demon',      emoji: '💨', title: 'Mach Speed Ductwork',         desc: 'Velocity over 2,000 FPM. That\'s not a duct, that\'s a wind tunnel with ambitions.' , reward: 'A speeding ticket from the ductwork police.' },
+    { id: 'ds_reynolds',         emoji: '🔬', title: 'Turbulence Enthusiast',       desc: 'Re > 10,000. Turbulent flow, just like your Monday mornings.' , reward: 'A laminar flow of appreciation.' },
+    { id: 'ds_friction_fanatic', emoji: '🌀', title: 'Friction Fanatic',            desc: '50 duct calculations. Your dedication to airflow is statistically abnormal.' , reward: 'The admiration of absolutely no one at the party.' },
+    { id: 'ds_concrete',         emoji: '🧱', title: 'Brutalist Architecture',      desc: 'You selected concrete ducts. We have questions, but we respect the commitment.' , reward: 'A very heavy trophy. Made of concrete, naturally.' },
+    { id: 'ds_mystery',          emoji: '❓', title: 'Gentle Breeze',               desc: 'Under 200 FPM. That\'s not air distribution, that\'s a polite suggestion.' , reward: 'A gentle pat on the back. Almost imperceptible.' },
+    { id: 'ds_legend',           emoji: '🏗️', title: 'Duct Whisperer',             desc: '250 duct calcs. The ducts speak to you now. This is either expertise or a cry for help.' , reward: 'An office with a window. The window does not open.' },
+    // ── VAV Box Sizer ──
+    { id: 'vav_box_office',      emoji: '📦', title: 'Box Office Hit',              desc: 'First VAV box sized. One small step for airflow, one giant leap for your submittal.' , reward: 'A box. Inside the box is a smaller box.' },
+    { id: 'vav_in_zone',         emoji: '✅', title: 'Nailed It',                   desc: 'Flow landed perfectly between min and max. Screenshot this. It may never happen again.' , reward: 'Bragging rights. Non-transferable. Non-redeemable.' },
+    { id: 'vav_go_big',          emoji: '📏', title: 'Compensating for Something',  desc: 'You sized the 24×16. That\'s not a VAV box, that\'s a studio apartment.' , reward: 'A studio apartment. Inside a VAV box.' },
+    { id: 'vav_below_floor',     emoji: '⚠️', title: 'Underachiever',               desc: 'Hit the minimum flow warning. The box is disappointed in you.' , reward: 'A participation trophy. Hollow, like the flow rate.' },
+    { id: 'vav_goldilocks',      emoji: '🎯', title: 'Goldilocks Protocol',         desc: 'Sized every box from 4″ to 24×16. Put it on your resume.' , reward: 'Three bowls of porridge. All the wrong temperature.' },
+    { id: 'vav_thinking_small',  emoji: '🔹', title: 'Fun Sized',                   desc: '4″ box at minimum flow. For when the closet absolutely needs conditioned air.' , reward: 'A very small trophy for a very small achievement.' },
+    { id: 'vav_mystery',         emoji: '❓', title: 'Ambitious',                   desc: 'Over maximum on the biggest box. You dreamed too big and the box said no.' , reward: 'A motivational poster that reads: Aim Lower.' },
+    // ── Fan Static Calculator ──
+    { id: 'fs_under_pressure',   emoji: '🌬️', title: 'Under Pressure',              desc: 'First fan static calc complete. Queen and David Bowie would be proud.' , reward: 'A vinyl record you cannot play at work.' },
+    { id: 'fs_kitchen',          emoji: '🍕', title: 'Kitchen Nightmare',           desc: 'Grease-laden exhaust selected. May your ductwork never meet a match.' , reward: 'A pizza you will never receive.' },
+    { id: 'fs_collector',        emoji: '🏗️', title: 'Hoarder of Components',       desc: '10+ components in one system. This stopped being engineering three fittings ago.' , reward: 'More components. Obviously.' },
+    { id: 'fs_fire',             emoji: '🔥', title: 'Playing with Fire',           desc: 'High-temp smoke control selected. Please tell us this is theoretical.' , reward: 'A fire extinguisher. Decorative only.' },
+    { id: 'fs_safety',           emoji: '🛡️', title: 'Safety Third',                desc: 'Safety factor at 25%+. You\'ve been burned before. Figuratively. We hope.' , reward: 'A safety vest. For your spreadsheets.' },
+    { id: 'fs_multi_system',     emoji: '🏛️', title: 'System Hoarder',              desc: '5+ systems in one session. You\'re not sizing fans, you\'re building a civilization.' , reward: 'The title of Emperor. Subjects not included.' },
+    { id: 'fs_fume',             emoji: '☣️', title: 'Hazard Pay',                  desc: 'Fume exhaust selected. Your nose thanks you for the consideration.' , reward: 'A gas mask. Non-functional. Display purposes only.' },
+    { id: 'fs_mystery',          emoji: '❓', title: 'Credit Where Due',            desc: 'Named your engineer and exported. Taking credit — the most important engineering skill.' , reward: 'Your name in 8pt font on a PDF no one will open.' },
+    // ── Pipe Sizer ──
+    { id: 'ps_pipe_dream',       emoji: '🚿', title: 'Pipe Dream',                  desc: 'First pipe calc done. Water will flow. Probably in the right direction.' , reward: 'A pipe dream. It is literally a dream about a pipe.' },
+    { id: 'ps_fixture_fixer',    emoji: '🚽', title: 'Flush with Success',          desc: 'Used the sanitary DFU calculator. Glamorous work.' , reward: 'A golden plunger. Not actual gold. Not an actual plunger.' },
+    { id: 'ps_cold_blooded',     emoji: '🧊', title: 'Cold Blooded',                desc: '40%+ propylene glycol. Your pipes won\'t freeze but your budget might.' , reward: 'A parka. Your budget will need it.' },
+    { id: 'ps_triple_threat',    emoji: '🏗️', title: 'Triple Threat',               desc: 'Used all three pipe calculators. Hydronic, sanitary, domestic — the pipe trifecta nobody asked for.' , reward: 'A three-headed trophy. None of the heads match.' },
+    { id: 'ps_alchemist',        emoji: '⚗️', title: 'The Alchemist',               desc: 'Steel, copper, and PEX. You don\'t have a favourite material. You love them all equally.' , reward: 'A rock with googly eyes. We call it the Philosopher Stone.' },
+    { id: 'ps_steep_grade',      emoji: '📐', title: 'Steep Grade',                 desc: '1:25 sanitary slope. That drain has places to be.' , reward: 'A tiny sled. For the drain.' },
+    { id: 'ps_mystery',          emoji: '❓', title: 'Antifreeze Sommelier',        desc: '60% propylene glycol. At this point it\'s basically syrup.' , reward: 'A bottle of syrup. Regular syrup. Not glycol.' },
+    // ── Heating Loop ──
+    { id: 'hl_loop_de_loop',     emoji: '♨️', title: 'Loop de Loop',                desc: 'First heating loop complete. Warm feelings all around. Literally.' , reward: 'A warm feeling. Thermal, not emotional.' },
+    { id: 'hl_full_house',       emoji: '🏨', title: 'Full House',                  desc: '20+ terminal units. That\'s not a loop, that\'s a logistics operation.' , reward: 'A sitcom laugh track plays in your honour.' },
+    { id: 'hl_delta_force',      emoji: '🌡️', title: 'Delta Force',                 desc: 'ΔT of 40°F+. Subtlety was clearly not in the design brief.' , reward: 'A pair of sunglasses you did not ask for.' },
+    { id: 'hl_multi_loop',       emoji: '🔀', title: 'Multi-Loop Maestro',          desc: '3+ loops in one project. You\'re not designing heating, you\'re composing a symphony.' , reward: 'A baton. For conducting your symphony of loops.' },
+    { id: 'hl_load_bearer',      emoji: '🧮', title: 'Load Bearer',                 desc: '500+ MBH. That\'s not heating, that\'s a small industrial operation with a dream.' , reward: 'A hard hat. For your desk.' },
+    { id: 'hl_district_heat',    emoji: '🏭', title: 'District Heating Overlord',   desc: '2,000+ MBH. You are now personally responsible for warming a small neighborhood.' , reward: 'A small neighbourhood. Population: zero.' },
+    // ── Louver Sizer ──
+    { id: 'ls_fresh_intake',     emoji: '🌀', title: 'Fresh Intake',                desc: 'First louver sized. Fresh air is overrated, but code says otherwise.' , reward: 'A single breath of fresh air. Use wisely.' },
+    { id: 'ls_rain_brain',       emoji: '🌧️', title: 'Rain Brain',                  desc: 'Intake within drainable velocity limit. The building will stay dry. Probably.' , reward: 'An umbrella that does not close.' },
+    { id: 'ls_high_velocity',    emoji: '💨', title: 'Terminal Velocity',            desc: 'Exhaust over 1,000 FPM. That air is LEAVING and it\'s not coming back.' , reward: 'A farewell card for the departing air.' },
+    { id: 'ls_big_face',         emoji: '📐', title: 'Big Face Energy',             desc: 'Face area over 25 ft². That\'s not a louver, that\'s a window with commitment issues.' , reward: 'A comically oversized novelty cheque. Amount: $0.00.' },
+    { id: 'ls_velocity_check',   emoji: '⚡', title: 'Living on the Edge',          desc: 'Within 2% of max velocity. Bold. Reckless. Efficient.' , reward: 'An adrenaline rush. Invoice to follow.' },
+    { id: 'ls_mystery',          emoji: '❓', title: 'Warranty Voided',             desc: 'Exceeded the recommended intake velocity. The manufacturer just felt a disturbance.' , reward: 'A sternly worded letter from a louver manufacturer.' },
+    // ── Psychrometric ──
+    { id: 'psy_wet_bulb',        emoji: '💧', title: 'Certified Air Nerd',          desc: 'First psychrometric lookup complete. There is no going back.' , reward: 'A one-way ticket to the psychrometric chart dimension.' },
+    { id: 'psy_mile_high',       emoji: '🏔️', title: 'Mile High',                   desc: 'Elevation over 5,000 ft. The air is thinner but your calcs are not.' , reward: 'Thin air. You may keep it.' },
+    { id: 'psy_desert_dry',      emoji: '🌵', title: 'Bone Dry',                    desc: 'RH below 10%. Even the air is dehydrated. Drink some water.' , reward: 'A glass of water. Please actually drink it.' },
+    { id: 'psy_saturation',      emoji: '🌊', title: 'You Made a Cloud',            desc: '100% RH entered. Congratulations, you\'ve invented weather indoors.' , reward: 'Indoor weather rights. Non-transferable.' },
+    { id: 'psy_four_mode',       emoji: '🔬', title: 'Four-Mode Engineer',          desc: 'Used all four input modes. You are become psychrometrics, destroyer of comfort zones.' , reward: 'A lab coat. Slightly used. Mostly clean.' },
+    { id: 'psy_mystery',         emoji: '❓', title: 'Surface of the Sun',          desc: 'Dry-bulb over 120°F. Sir, this is a building, not a kiln.' , reward: 'SPF 5000 sunscreen. Theoretical protection only.' },
+    // ── Training Library ──
+    { id: 'tl_first_chapter',    emoji: '📖', title: 'Page Turner',                 desc: 'Opened your first training doc. Knowledge is power. Allegedly.' , reward: 'Knowledge. Allegedly.' },
+    { id: 'tl_template_tamer',   emoji: '📋', title: 'Standing on Shoulders',       desc: 'Downloaded a template. Honour the person who made this by filling it in correctly.' , reward: 'The eternal gratitude of whoever made that template.' },
+    { id: 'tl_code_walker',      emoji: '📜', title: 'Code Walker',                 desc: 'Accessed Codes & Standards. Light reading for the truly unhinged.' , reward: 'A bookmark. You will need several.' },
+    { id: 'tl_cross_disciplined',emoji: '🎓', title: 'Cross-Disciplined',           desc: '4+ library sections visited. You\'re either thorough or completely lost.' , reward: 'A compass. You are clearly lost.' },
+    { id: 'tl_deep_search',      emoji: '🔍', title: 'Deep Search',                 desc: 'Used search to find and open a doc. Ctrl+F energy, but for your career.' , reward: 'The satisfaction of not scrolling like a barbarian.' },
+    { id: 'tl_librarian',        emoji: '🏆', title: 'The Librarian',               desc: '50 documents opened. At this point, just move into the training library.' , reward: 'A library card. Valid at exactly zero libraries.' },
+    // ── Platform-Wide ──
+    { id: 'pw_fresh_air',        emoji: '👋', title: 'Hello World',                 desc: 'You entered your name. The toolbox now acknowledges you as a person.' , reward: 'Acknowledgement as a person. The bare minimum.' },
+    { id: 'pw_tool_tourist',     emoji: '🌐', title: 'Tool Tourist',                desc: 'Visited every tool. You\'ve seen things. Calculators. Dropdowns. Unspeakable tables.' , reward: 'A postcard from every tool. None are interesting.' },
+    { id: 'pw_deadline_eng',     emoji: '🌙', title: 'The Deadline Engineer',       desc: 'Using the toolbox between midnight and 4 AM. The project is due tomorrow, isn\'t it.' , reward: 'Imaginary coffee. Dangerously strong.' },
+    { id: 'pw_night_owl',        emoji: '🦉', title: 'Night Owl',                   desc: 'Toolbox use after 10 PM. Go home. Or don\'t. We\'re not your manager.' , reward: 'Permission to go home. You will not use it.' },
+    { id: 'pw_early_bird',       emoji: '🐦', title: 'Early Bird',                  desc: 'Toolbox use before 6 AM. Either extremely dedicated or haven\'t slept. Both valid.' , reward: 'A worm. The early bird gets one. Sorry.' },
+    { id: 'pw_seven_day_streak', emoji: '📅', title: '7-Day Streak',                desc: 'Seven days in a row. Weekends are a social construct anyway.' , reward: 'A calendar with the weekends removed.' },
+    { id: 'pw_search_party',     emoji: '🔎', title: 'Search Party',                desc: '100 searches. You have personally kept this search bar employed.' , reward: 'A magnifying glass. Mostly decorative.' },
+    { id: 'pw_egg_found',        emoji: '🥚', title: 'Easter Egg Hunter',           desc: 'Found a hidden easter egg. You weren\'t supposed to find that.' , reward: 'A chocolate egg. Digital. You cannot eat it.' },
+    { id: 'pw_bookworm',         emoji: '📚', title: 'Digital Hoarder',             desc: '5+ favourites. You favourite things like your career depends on it.' , reward: 'A bookshelf. Assembly required. Instructions missing.' },
+    { id: 'pw_organized',        emoji: '📁', title: 'Organized',                   desc: 'Reordered your favourites. Rearranging deck chairs, but productively.' , reward: 'A label maker. Batteries sold separately. Labels not included.' },
+    { id: 'pw_identity_crisis',  emoji: '🥸', title: 'Identity Crisis',             desc: 'Changed your name 3+ times. Still figuring things out. That\'s okay.' , reward: 'A name tag. Currently blank. Fitting.' },
+    { id: 'pw_profile_visitor',  emoji: '🪞', title: 'Self Reflection',             desc: 'Visited the profile page. Sometimes you just need to look yourself in the eye.' , reward: 'Self-awareness. Handle with care.' },
+    { id: 'pw_remedy_lifer',     emoji: '🎖️', title: 'Remedy Lifer',                desc: '40+ achievements. You\'re either incredibly thorough or procrastinating spectacularly.' , reward: 'A corner office in a building that has not been designed yet.' }
+  ];
+
+  var _toastEl = null;
+  var _toastTimer = null;
+  var _toastQueue = [];
+  var _toastShowing = false;
+
+  function _getToast() {
+    if (_toastEl) return _toastEl;
+    _toastEl = document.createElement('div');
+    _toastEl.className = 'ach-toast';
+    _toastEl.setAttribute('role', 'status');
+    _toastEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(_toastEl);
+    _toastEl.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html#achievements';
+    });
+    return _toastEl;
+  }
+
+  function _processQueue() {
+    if (_toastQueue.length === 0) { _toastShowing = false; return; }
+    _toastShowing = true;
+    var ach = _toastQueue.shift();
+    var el = _getToast();
+    el.innerHTML = '<span class="ach-toast-emoji">' + ach.emoji + '</span>' +
+      '<div class="ach-toast-text">' +
+        '<span class="ach-toast-label">Achievement Unlocked</span>' +
+        '<span class="ach-toast-title">' + ach.title + '</span>' +
+        '<span class="ach-toast-desc">' + ach.desc + '</span>' +
+        (ach.reward ? '<span class="ach-toast-reward">✦ ' + ach.reward + '</span>' : '') +
+      '</div>';
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function() {
+      el.classList.remove('show');
+      setTimeout(_processQueue, 350);
+    }, 3200);
+  }
+
+  function _showToast(ach) {
+    _toastQueue.push(ach);
+    if (!_toastShowing) _processQueue();
+  }
+
+  function unlock(id) {
+    var key = PREFIX + id;
+    if (localStorage.getItem(key)) return false;
+    localStorage.setItem(key, new Date().toISOString());
+    var ach = REGISTRY.find(function(a) { return a.id === id; });
+    if (ach) _showToast(ach);
+    _checkRemedy();
+    return true;
+  }
+
+  function isUnlocked(id) {
+    return !!localStorage.getItem(PREFIX + id);
+  }
+
+  function getAll() {
+    return REGISTRY.map(function(a) {
+      var ts = localStorage.getItem(PREFIX + a.id);
+      return { id: a.id, emoji: a.emoji, title: a.title, desc: a.desc, reward: a.reward || '', unlocked: !!ts, date: ts || null };
+    });
+  }
+
+  function getUnlockedCount() {
+    return REGISTRY.filter(function(a) { return !!localStorage.getItem(PREFIX + a.id); }).length;
+  }
+
+  function _checkRemedy() {
+    if (getUnlockedCount() >= 40) unlock('pw_remedy_lifer');
+  }
+
+  function trackPageVisit(page) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_visited') || '{}';
+      var visited = JSON.parse(raw);
+      visited[page] = 1;
+      localStorage.setItem(PREFIX + '_visited', JSON.stringify(visited));
+      var keys = Object.keys(visited);
+      if (visited.home && visited.tools && visited.docs) {
+        var allTools = ['duct_sizer','vav_sizer','fan_static','pipe_sizer','heating_loop','louver_sizer','unit_converter','psychrometric'];
+        var visitedAll = allTools.every(function(t) { return !!visited[t]; });
+        if (visitedAll) unlock('pw_tool_tourist');
+      }
+    } catch (e) {}
+  }
+
+  function trackSubtool(name) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_subtools') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(name) < 0) list.push(name);
+      localStorage.setItem(PREFIX + '_subtools', JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function trackEggFound(query) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_eggs_found') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(query) < 0) list.push(query);
+      localStorage.setItem(PREFIX + '_eggs_found', JSON.stringify(list));
+      unlock('pw_egg_found');
+    } catch (e) {}
+  }
+
+  function trackNameChange() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_nameChanges') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_nameChanges', '' + count);
+      if (count >= 3) unlock('pw_identity_crisis');
+    } catch (e) {}
+  }
+
+  function trackSearch() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_searchCount') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_searchCount', '' + count);
+      if (count >= 100) unlock('pw_search_party');
+    } catch (e) {}
+  }
+
+  function trackDayVisit() {
+    try {
+      var today = new Date().toISOString().slice(0, 10);
+      var raw = localStorage.getItem(PREFIX + '_dayVisits') || '[]';
+      var days = JSON.parse(raw);
+      if (days[days.length - 1] !== today) {
+        days.push(today);
+        if (days.length > 14) days = days.slice(-14);
+        localStorage.setItem(PREFIX + '_dayVisits', JSON.stringify(days));
+      }
+      if (days.length >= 7) {
+        var last7 = days.slice(-7);
+        var streak = true;
+        for (var i = 1; i < last7.length; i++) {
+          var prev = new Date(last7[i-1]); var curr = new Date(last7[i]);
+          var diff = (curr - prev) / 86400000;
+          if (diff !== 1) { streak = false; break; }
+        }
+        if (streak) unlock('pw_seven_day_streak');
+      }
+    } catch (e) {}
+  }
+
+  function checkPageLoad() {
+    try {
+      var hr = new Date().getHours();
+      if (hr >= 22 || hr < 2) unlock('pw_night_owl');
+      if (hr >= 0 && hr < 4) unlock('pw_deadline_eng');
+      if (hr >= 4 && hr < 6) unlock('pw_early_bird');
+    } catch (e) {}
+
+    trackDayVisit();
+
+    try {
+      var path = location.pathname.replace(/\\/g, '/').split('/').pop() || '';
+      if (/Remedy_Home/i.test(path))            trackPageVisit('home');
+      else if (/Remedy_Tools/i.test(path))      trackPageVisit('tools');
+      else if (/Training_Library/i.test(path))  trackPageVisit('docs');
+      else if (/Remedy_Profile/i.test(path))    { trackPageVisit('profile'); unlock('pw_profile_visitor'); }
+      else if (/Duct_Sizer/i.test(path))        { trackPageVisit('duct_sizer');    trackSubtool('Duct_Sizer'); }
+      else if (/VAV_Sizer/i.test(path))         { trackPageVisit('vav_sizer');     trackSubtool('VAV_Sizer'); }
+      else if (/Fan_Static/i.test(path))        { trackPageVisit('fan_static');    trackSubtool('Fan_Static'); }
+      else if (/pipe-sizer/i.test(path))        { trackPageVisit('pipe_sizer');    trackSubtool('pipe_sizer'); }
+      else if (/Heating_Loop/i.test(path))      { trackPageVisit('heating_loop');  trackSubtool('Heating_Loop'); }
+      else if (/Louver_Sizer/i.test(path))      { trackPageVisit('louver_sizer');  trackSubtool('Louver_Sizer'); }
+      else if (/Unit_Converter/i.test(path))    { trackPageVisit('unit_converter');trackSubtool('Unit_Converter'); }
+      else if (/Psychrometric/i.test(path))     { trackPageVisit('psychrometric'); trackSubtool('Psychrometric'); }
+    } catch (e) {}
+
+    try {
+      if (typeof __favsAPI !== 'undefined') {
+        var favs = __favsAPI.load();
+        if (favs.length >= 5) unlock('pw_bookworm');
+      }
+    } catch (e) {}
+
+    try {
+      if (localStorage.getItem('remedy_egg_fresh_air')) unlock('pw_fresh_air');
+      if (localStorage.getItem('remedy_egg_deadline_date')) unlock('pw_deadline_eng');
+    } catch (e) {}
+  }
+
+  return {
+    REGISTRY: REGISTRY,
+    unlock: unlock,
+    isUnlocked: isUnlocked,
+    getAll: getAll,
+    getUnlockedCount: getUnlockedCount,
+    trackPageVisit: trackPageVisit,
+    trackSubtool: trackSubtool,
+    trackEggFound: trackEggFound,
+    trackNameChange: trackNameChange,
+    trackSearch: trackSearch,
+    trackDayVisit: trackDayVisit,
+    checkPageLoad: checkPageLoad
+  };
+})();
+
+
+// EH Price SDV terminal-unit sizing.
+//   cfm / lps : [controllable min, 80% of 1.5" w.g. max]
+//   fpm2000   : preferred selection point at 2,000 FPM inlet velocity
+const EH_PRICE_SDV = [
+  { size: '4',     cfm: [45,   320],  lps: [21,   151],  fpm2000: { cfm: 150,  lps: 71   } },
+  { size: '5',     cfm: [60,   400],  lps: [28,   189],  fpm2000: { cfm: 250,  lps: 118  } },
+  { size: '6',     cfm: [65,   441],  lps: [31,   208],  fpm2000: { cfm: 400,  lps: 189  } },
+  { size: '7',     cfm: [75,   641],  lps: [35,   302],  fpm2000: { cfm: 550,  lps: 260  } },
+  { size: '8',     cfm: [125,  880],  lps: [59,   415],  fpm2000: { cfm: 700,  lps: 330  } },
+  { size: '9',     cfm: [160,  1120], lps: [76,   529],  fpm2000: { cfm: 900,  lps: 425  } },
+  { size: '10',    cfm: [210,  1441], lps: [99,   680],  fpm2000: { cfm: 1100, lps: 519  } },
+  { size: '12',    cfm: [300,  2080], lps: [142,  982],  fpm2000: { cfm: 1600, lps: 755  } },
+  { size: '14',    cfm: [430,  2960], lps: [203,  1397], fpm2000: { cfm: 2100, lps: 991  } },
+  { size: '16',    cfm: [575,  4000], lps: [271,  1888], fpm2000: { cfm: 2800, lps: 1321 } },
+  { size: '24X16', cfm: [1185, 6719], lps: [559,  3171], fpm2000: { cfm: 5300, lps: 2501 } }
+];
+
+const fmt = n => n.toLocaleString('en-US');
+
+const sel    = document.getElementById('sizeSel');
+const roSize = document.getElementById('roSize');
+const roRange= document.getElementById('roRange');
+const roSub  = document.getElementById('roSub');
+const tbody  = document.getElementById('tbody');
+const unitIp = document.getElementById('unitIp');
+const unitSi = document.getElementById('unitSi');
+
+let displayUnits = 'cfm';   // for size-picker readout
+let targetUnits  = 'cfm';   // for reverse lookup
+
+// Populate dropdown
+EH_PRICE_SDV.forEach(r => {
+  const opt = document.createElement('option');
+  opt.value = r.size;
+  opt.textContent = 'Size ' + r.size;
+  sel.appendChild(opt);
+});
+
+// Build table
+function buildTable(selectedSize) {
+  tbody.innerHTML = '';
+  EH_PRICE_SDV.forEach(r => {
+    const tr = document.createElement('tr');
+    if (r.size === selectedSize) tr.className = 'selected';
+    tr.innerHTML =
+      '<td>Size ' + r.size + '</td>' +
+      '<td>' + fmt(r.cfm[0]) + '</td>' +
+      '<td class="col-pref">' + fmt(r.fpm2000.cfm) + '</td>' +
+      '<td>' + fmt(r.cfm[1]) + '</td>' +
+      '<td>' + fmt(r.lps[0]) + '</td>' +
+      '<td class="col-pref">' + fmt(r.fpm2000.lps) + '</td>' +
+      '<td>' + fmt(r.lps[1]) + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function updateReadout() {
+  const r = EH_PRICE_SDV.find(x => x.size === sel.value);
+  if (!r) return;
+  roSize.textContent = 'Size ' + r.size;
+  if (displayUnits === 'cfm') {
+    roRange.textContent = fmt(r.fpm2000.cfm) + ' CFM @ 2,000 FPM';
+    roSub.innerHTML     = 'Preferred selection &nbsp;·&nbsp; min ' + fmt(r.cfm[0]) +
+                          ' &nbsp;·&nbsp; 80% max ' + fmt(r.cfm[1]) + ' CFM &nbsp;(' +
+                          fmt(r.fpm2000.lps) + ' L/s @ 2,000 FPM)';
+  } else {
+    roRange.textContent = fmt(r.fpm2000.lps) + ' L/s @ 2,000 FPM';
+    roSub.innerHTML     = 'Preferred selection &nbsp;·&nbsp; min ' + fmt(r.lps[0]) +
+                          ' &nbsp;·&nbsp; 80% max ' + fmt(r.lps[1]) + ' L/s &nbsp;(' +
+                          fmt(r.fpm2000.cfm) + ' CFM @ 2,000 FPM)';
+  }
+  buildTable(r.size);
+}
+
+sel.addEventListener('change', updateReadout);
+unitIp.addEventListener('click', () => {
+  displayUnits = 'cfm';
+  unitIp.classList.add('active'); unitSi.classList.remove('active');
+  updateReadout();
+});
+unitSi.addEventListener('click', () => {
+  displayUnits = 'lps';
+  unitSi.classList.add('active'); unitIp.classList.remove('active');
+  updateReadout();
+});
+
+// ---- Reverse lookup ----
+const tgtFlow    = document.getElementById('tgtFlow');
+const tgtIp      = document.getElementById('tgtIp');
+const tgtSi      = document.getElementById('tgtSi');
+const pickResult = document.getElementById('pickResult');
+
+function pickSize() {
+  const v = parseFloat(tgtFlow.value);
+  if (!isFinite(v) || v <= 0) {
+    pickResult.className = 'pick-result';
+    pickResult.innerHTML =
+      '<div class="pr-label">Recommendation</div>' +
+      '<div class="pr-headline">Enter a target flow above</div>' +
+      '<div class="pr-detail">We\'ll size the box at 2,000 FPM (our preferred selection) and never spec smaller than Size 6.</div>';
+    return;
+  }
+  const key = targetUnits === 'cfm' ? 'cfm' : 'lps';
+  const unitLabel = targetUnits === 'cfm' ? 'CFM' : 'L/s';
+  const altKey = key === 'cfm' ? 'lps' : 'cfm';
+  const altLabel = key === 'cfm' ? 'L/s' : 'CFM';
+
+  const v2000 = r => r.fpm2000[key];
+  const vmax  = r => r[key][1];
+  const vmin  = r => r[key][0];
+
+  const smallest = EH_PRICE_SDV[0];
+  const largest  = EH_PRICE_SDV[EH_PRICE_SDV.length - 1];
+  const SIX      = EH_PRICE_SDV.find(r => r.size === '6');
+
+  // Below the controllable minimum of the smallest box
+  if (v < vmin(smallest)) {
+    pickResult.className = 'pick-result warn';
+    pickResult.innerHTML =
+      '<div class="pr-label">Below minimum</div>' +
+      '<div class="pr-headline">Below the smallest box\'s controllable minimum</div>' +
+      '<div class="pr-detail">Target ' + fmt(v) + ' ' + unitLabel + ' is below the min of Size 4 (' +
+        fmt(vmin(smallest)) + ' ' + unitLabel + '). Combine loads or use a different terminal type.</div>';
+    sel.value = smallest.size;
+    updateReadout();
+    return;
+  }
+
+  // Preferred: smallest box whose 2,000 FPM flow >= target.
+  const pick2000 = EH_PRICE_SDV.find(r => v <= v2000(r));
+  // For comparison: smallest box whose 80% max flow >= target.
+  const pickMax  = EH_PRICE_SDV.find(r => v <= vmax(r));
+
+  // Above the 2,000 FPM point of the largest box
+  if (!pick2000) {
+    if (pickMax) {
+      pickResult.className = 'pick-result warn';
+      pickResult.innerHTML =
+        '<div class="pr-label">Above 2,000 FPM — largest box</div>' +
+        '<div class="pr-headline">Size ' + largest.size + ' &nbsp;·&nbsp; runs above 2,000 FPM</div>' +
+        '<div class="pr-detail">Target ' + fmt(v) + ' ' + unitLabel + ' exceeds the 2,000 FPM point of Size ' + largest.size +
+          ' (' + fmt(v2000(largest)) + ' ' + unitLabel + ') but stays within its 80% max (' + fmt(vmax(largest)) + ' ' + unitLabel +
+          '). It will run faster and louder than our preferred selection — consider splitting into multiple boxes.</div>';
+      sel.value = largest.size;
+      updateReadout();
+      return;
+    }
+    pickResult.className = 'pick-result bad';
+    pickResult.innerHTML =
+      '<div class="pr-label">Over maximum</div>' +
+      '<div class="pr-headline">Exceeds Size ' + largest.size + ' (largest SDV)</div>' +
+      '<div class="pr-detail">Target ' + fmt(v) + ' ' + unitLabel + ' is above the 80% max of Size ' + largest.size + ' (' +
+        fmt(vmax(largest)) + ' ' + unitLabel + '). Split into multiple boxes or use a different product line.</div>';
+    sel.value = largest.size;
+    updateReadout();
+    return;
+  }
+
+  // Apply the Size-6 floor (sizes 4/5/6 are the same box; 4 & 5 add a duct reducer).
+  let rec = pick2000;
+  let smallerNote = '';
+  if (pick2000.size === '4' || pick2000.size === '5') {
+    const smaller = pick2000.size;
+    rec = SIX;
+    if (v < vmin(SIX)) {
+      pickResult.className = 'pick-result warn';
+      pickResult.innerHTML =
+        '<div class="pr-label">Use Size 6 — with a caveat</div>' +
+        '<div class="pr-headline">Size 6 &nbsp;·&nbsp; ' + fmt(v2000(SIX)) + ' ' + unitLabel + ' @ 2,000 FPM</div>' +
+        '<div class="pr-detail">Target ' + fmt(v) + ' ' + unitLabel + ' is below Size 6\'s min (' + fmt(vmin(SIX)) + ' ' + unitLabel +
+          '). Sizes 4, 5 and 6 are the same box, but the smaller inlets ship with a duct reducer that hurts balancing. ' +
+          'Combine loads to reach Size 6\'s range if you can — otherwise Size ' + smaller + ' with the reducer will deliver it.</div>';
+      sel.value = SIX.size;
+      updateReadout();
+      return;
+    }
+    smallerNote = 'Size ' + smaller + ' would also handle this, but sizes 4, 5 and 6 are the same box and the smaller inlets ship with a duct reducer that hurts balancing — so we spec Size 6. ';
+  }
+
+  // 80% max cross-check note
+  let cmpNote = '';
+  if (pickMax && pickMax.size !== rec.size) {
+    cmpNote = 'At 80% of the 1.5″ max this flow would fit the smaller Size ' + pickMax.size +
+      '; we prefer the 2,000 FPM pick for lower velocity and easier balancing.';
+  }
+
+  pickResult.className = 'pick-result';
+  pickResult.innerHTML =
+    '<div class="pr-label">Use size · 2,000 FPM</div>' +
+    '<div class="pr-headline">Size ' + rec.size + ' &nbsp;·&nbsp; ' + fmt(v2000(rec)) + ' ' + unitLabel + ' @ 2,000 FPM</div>' +
+    '<div class="pr-detail">Target ' + fmt(v) + ' ' + unitLabel + ' is in range for Size ' + rec.size +
+      ' (min ' + fmt(vmin(rec)) + ', 80% max ' + fmt(vmax(rec)) + ' ' + unitLabel + '; ' +
+      fmt(rec.fpm2000[altKey]) + ' ' + altLabel + ' @ 2,000 FPM). ' + smallerNote + cmpNote + '</div>';
+  sel.value = rec.size;
+  updateReadout();
+}
+
+tgtFlow.addEventListener('input', pickSize);
+tgtIp.addEventListener('click', () => {
+  targetUnits = 'cfm';
+  tgtIp.classList.add('active'); tgtSi.classList.remove('active');
+  pickSize();
+});
+tgtSi.addEventListener('click', () => {
+  targetUnits = 'lps';
+  tgtSi.classList.add('active'); tgtIp.classList.remove('active');
+  pickSize();
+});
+
+// ---- Deep link: ?size=N ----
+(function initFromQuery() {
+  const params = new URLSearchParams(location.search);
+  const raw = (params.get('size') || '').trim();
+  if (raw) {
+    // Accept '4', 'size 4', '24x16', '24X16', etc.
+    const norm = raw.toUpperCase().replace(/^SIZE\s*/i, '').replace(/\s+/g, '');
+    const match = EH_PRICE_SDV.find(r => r.size.toUpperCase() === norm);
+    if (match) sel.value = match.size;
+  } else {
+    sel.value = '8';
+  }
+  updateReadout();
+})();
+
+__achievementsAPI.checkPageLoad();
+
+/* ── Greeting + Profile Link ── */
+(function() {
+  var NAME_KEY = 'remedy.userName.v1';
+  function getName() { return (localStorage.getItem(NAME_KEY) || '').trim(); }
+  function paintGreeting() {
+    var el = document.getElementById('greet-text');
+    if (!el) return;
+    var n = getName();
+    el.innerHTML = n ? 'Welcome, <strong>' + n + '</strong>.' : 'Welcome.';
+  }
+  paintGreeting();
+  var pencil = document.getElementById('greet-edit');
+  if (pencil) {
+    pencil.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html';
+    });
+  }
+  window.addEventListener('storage', function(e) {
+    if (e && e.key === NAME_KEY) paintGreeting();
+  });
+})();
+
+
+/* ── Achievement Tracking (VAV Sizer) ── */
+(function() {
+  var _vavSizesUsed = JSON.parse(localStorage.getItem('remedy.ach._vavSizes') || '{}');
+
+  function checkVavAch() {
+    try {
+      var sizeSel    = document.getElementById('sizeSel');
+      var pickResult = document.getElementById('pickResult');
+
+      if (!sizeSel || !sizeSel.value) return;
+      var currentSize = sizeSel.value;
+
+      // First VAV sizing
+      __achievementsAPI.unlock('vav_box_office');
+
+      // Track size
+      _vavSizesUsed[currentSize] = 1;
+      localStorage.setItem('remedy.ach._vavSizes', JSON.stringify(_vavSizesUsed));
+
+      // Go Big or Go Home (24x16)
+      if (/24.?16/i.test(currentSize)) __achievementsAPI.unlock('vav_go_big');
+
+      // Check result status
+      if (pickResult) {
+        var cls = (pickResult.className || '').toLowerCase();
+        var txt = (pickResult.textContent || '').toLowerCase();
+        if (cls.indexOf('ok') >= 0 || txt.indexOf('use size') >= 0 || txt.indexOf('in range') >= 0) {
+          __achievementsAPI.unlock('vav_in_zone');
+        }
+        if (cls.indexOf('warn') >= 0 || txt.indexOf('below') >= 0) {
+          __achievementsAPI.unlock('vav_below_floor');
+        }
+        if ((cls.indexOf('bad') >= 0 || txt.indexOf('over') >= 0) && /24.?16/i.test(currentSize)) {
+          __achievementsAPI.unlock('vav_mystery');
+        }
+      }
+
+      // Thinking Small (4" at minimum flow)
+      if (currentSize === '4') {
+        var tgtIp = document.getElementById('tgtIp');
+        var flowInp = document.querySelector('#tgt');
+        if (!flowInp) flowInp = document.querySelector('input[type="number"]');
+        if (flowInp) {
+          var flow = parseFloat(flowInp.value);
+          if (!isNaN(flow) && flow <= 45) __achievementsAPI.unlock('vav_thinking_small');
+        }
+      }
+
+      // Goldilocks (all sizes)
+      var allSizes = ['4','5','6','7','8','10','12','14','16X12','20X12','24X16'];
+      if (allSizes.every(function(s) { return !!_vavSizesUsed[s]; })) {
+        __achievementsAPI.unlock('vav_goldilocks');
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('input', function() { setTimeout(checkVavAch, 120); });
+  document.addEventListener('change', function() { setTimeout(checkVavAch, 120); });
+})();
+
+</script>
+<!-- ============ REMEDY FEEDBACK WIDGET ============ -->
+<style>
+  #remedy-fb-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+    background: var(--orange); color: var(--on-dark); border: none;
+    padding: 12px 18px; border-radius: 28px;
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif; font-size: 13px;
+    font-weight: bold; letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    cursor: pointer; transition: background 0.15s, transform 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-fab:hover { background: var(--orange-d); transform: translateY(-2px); }
+  #remedy-fb-fab .fb-icon { font-size: 16px; }
+  #remedy-fb-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(43,43,43,0.55); z-index: 9100;
+    display: none; align-items: center; justify-content: center;
+  }
+  #remedy-fb-overlay.open { display: flex; }
+  #remedy-fb-modal {
+    background: var(--white); width: 480px; max-width: 92vw; max-height: 88vh;
+    overflow-y: auto;
+    border-top: 5px solid var(--orange);
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
+    color: var(--ink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }
+  #remedy-fb-modal .fb-head {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  #remedy-fb-modal .fb-head h2 { margin: 0; font-size: 18px; color: var(--ink); }
+  #remedy-fb-modal .fb-head .fb-x {
+    background: transparent; border: none; font-size: 24px;
+    cursor: pointer; color: var(--grey-l); line-height: 1; padding: 0 4px;
+  }
+  #remedy-fb-modal .fb-head .fb-x:hover { color: var(--bad); }
+  #remedy-fb-modal .fb-body { padding: 16px 20px; }
+  #remedy-fb-modal .fb-row { margin-bottom: 14px; }
+  #remedy-fb-modal label {
+    display: block; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange-d); margin-bottom: 4px;
+  }
+  #remedy-fb-modal .fb-page-display {
+    font-size: 13px; color: var(--ink); font-weight: bold;
+    padding: 6px 10px; background: var(--cream);
+    border-left: 3px solid var(--orange);
+  }
+  #remedy-fb-modal select,
+  #remedy-fb-modal textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    border: 1px solid var(--border); padding: 7px 9px;
+    background: var(--white); color: var(--ink);
+    box-sizing: border-box;
+  }
+  #remedy-fb-modal textarea { min-height: 110px; resize: vertical; }
+  #remedy-fb-modal select:focus,
+  #remedy-fb-modal textarea:focus { outline: 2px solid var(--orange); outline-offset: -1px; }
+  #remedy-fb-modal .fb-screenshot-note {
+    background: var(--cream); border-left: 3px solid var(--lime);
+    padding: 8px 10px; font-size: 11px; color: var(--grey);
+    line-height: 1.4;
+  }
+  #remedy-fb-modal .fb-screenshot-note b { color: var(--orange-d); }
+  #remedy-fb-modal .fb-foot {
+    padding: 14px 20px; background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot button {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    padding: 8px 16px; border: none; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel {
+    background: var(--white); color: var(--ink); border: 1px solid var(--border);
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel:hover { background: var(--bg); }
+  #remedy-fb-modal .fb-foot .fb-send {
+    background: var(--lime); color: var(--on-dark);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot .fb-send:hover { background: var(--lime-d); }
+  #remedy-fb-modal .fb-foot .fb-send:disabled {
+    background: var(--border); cursor: not-allowed; opacity: 0.85;
+  }
+  #remedy-fb-modal .fb-spinner {
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: remedy-fb-spin 0.7s linear infinite;
+    display: none;
+  }
+  #remedy-fb-modal .fb-foot .fb-send.is-sending .fb-spinner { display: inline-block; }
+  @keyframes remedy-fb-spin { to { transform: rotate(360deg); } }
+  #remedy-fb-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 16px; font-family: Calibri,sans-serif; font-size: 13px;
+    border-left: 4px solid var(--lime); z-index: 9200;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    max-width: 360px;
+  }
+  #remedy-fb-toast.show { opacity: 1; transform: translateY(0); }
+  @media print { #remedy-fb-fab, #remedy-fb-overlay, #remedy-fb-toast { display: none !important; } }
+</style>
+
+<button id="remedy-fb-fab" type="button" aria-label="Send feedback">
+  <span class="fb-icon">&#9993;</span><span>Feedback</span>
+</button>
+
+<div id="remedy-fb-overlay" role="dialog" aria-modal="true" aria-labelledby="remedy-fb-title">
+  <div id="remedy-fb-modal">
+    <div class="fb-head">
+      <h2 id="remedy-fb-title">Send Feedback</h2>
+      <button class="fb-x" id="remedy-fb-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="fb-body">
+      <div class="fb-row">
+        <label>Page</label>
+        <div class="fb-page-display" id="remedy-fb-page">&mdash;</div>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-type">Type</label>
+        <select id="remedy-fb-type">
+          <option>Bug</option>
+          <option>Suggestion</option>
+          <option>Question</option>
+          <option>General</option>
+        </select>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-comment">Comments</label>
+        <textarea id="remedy-fb-comment" placeholder="What happened, what you expected, or what you'd like added&hellip;"></textarea>
+      </div>
+      <div class="fb-row">
+        <div class="fb-screenshot-note">
+          <b>Need to share a screenshot?</b> Email it separately to Colson and reference this page name &mdash; the page name is included automatically with every feedback message.
+        </div>
+      </div>
+    </div>
+    <div class="fb-foot">
+      <button class="fb-cancel" id="remedy-fb-cancel" type="button">Cancel</button>
+      <button class="fb-send" id="remedy-fb-send" type="button">
+        <span class="fb-spinner"></span>
+        <span class="fb-send-label">Send Feedback</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="remedy-fb-toast"></div>
+
+<script>
+(function() {
+  'use strict';
+  var ACCESS_KEY = 'aab66b178e7f443592bd3c906d930053';
+  var ENDPOINT = 'https://formly.email/submit';
+
+  var fab = document.getElementById('remedy-fb-fab');
+  var overlay = document.getElementById('remedy-fb-overlay');
+  var closeBtn = document.getElementById('remedy-fb-close');
+  var cancelBtn = document.getElementById('remedy-fb-cancel');
+  var sendBtn = document.getElementById('remedy-fb-send');
+  var sendLabel = sendBtn.querySelector('.fb-send-label');
+  var typeSel = document.getElementById('remedy-fb-type');
+  var commentEl = document.getElementById('remedy-fb-comment');
+  var pageEl = document.getElementById('remedy-fb-page');
+  var toastEl = document.getElementById('remedy-fb-toast');
+
+  function getPageLabel() {
+    var t = (document.title || '').trim();
+    if (t) return t;
+    var p = location.pathname.split('/').pop() || 'Unknown';
+    return p.replace(/\.html?$/i, '').replace(/_/g, ' ');
+  }
+  function lsGet(k) {
+    try { return (localStorage.getItem(k) || '').trim(); } catch (_) { return ''; }
+  }
+  function getUserName() {
+    return lsGet('remedy.userName.v1') || lsGet('remedy.user.name');
+  }
+  function getUserEmail() {
+    return lsGet('remedy.email.v1') || lsGet('remedy.user.email') || lsGet('remedy.userEmail.v1');
+  }
+
+  function toast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.style.borderLeftColor = isError ? '#B00000' : '#99a668';
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 3500);
+  }
+
+  function openModal() {
+    pageEl.textContent = getPageLabel();
+    overlay.classList.add('open');
+    setTimeout(function(){ commentEl.focus(); }, 30);
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  fab.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+
+  function setSending(isSending) {
+    sendBtn.disabled = isSending;
+    sendBtn.classList.toggle('is-sending', isSending);
+    sendLabel.textContent = isSending ? 'Sending…' : 'Send Feedback';
+    cancelBtn.disabled = isSending;
+  }
+
+  sendBtn.addEventListener('click', function() {
+    var comment = (commentEl.value || '').trim();
+    if (!comment) {
+      toast('Please add a comment before sending.', true);
+      commentEl.focus();
+      return;
+    }
+
+    var name = getUserName() || '(not set)';
+    var email = getUserEmail() || '(not set in profile)';
+    var page = getPageLabel();
+    var type = typeSel.value;
+    var when = new Date().toLocaleString();
+
+    var fd = new FormData();
+    fd.append('access_key', ACCESS_KEY);
+    fd.append('subject', 'Remedy Tools Feedback: ' + type + ' — ' + page);
+    fd.append('from_name', 'Remedy Tools Feedback');
+    if (email && email.indexOf('@') > 0) fd.append('replyto', email);
+    fd.append('Tester', name);
+    fd.append('Tester Email', email);
+    fd.append('Page', page);
+    fd.append('URL', location.href);
+    fd.append('Type', type);
+    fd.append('Submitted', when);
+    fd.append('Comments', comment);
+
+    setSending(true);
+
+    fetch(ENDPOINT, { method: 'POST', body: fd })
+      .then(function(res) { return res.json().then(function(json){ return { ok: res.ok, json: json }; }); })
+      .then(function(r) {
+        if (r.ok && r.json && r.json.success) {
+          toast('Feedback sent — thanks!');
+          setTimeout(function(){
+            closeModal();
+            commentEl.value = '';
+            typeSel.selectedIndex = 0;
+          }, 400);
+        } else {
+          var msg = (r.json && r.json.message) ? r.json.message : 'Server rejected the submission.';
+          toast('Could not send: ' + msg, true);
+        }
+      })
+      .catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Network error.';
+        toast('Send failed: ' + msg + ' — check your connection or firewall.', true);
+      })
+      .finally(function() {
+        setSending(false);
+      });
+  });
+})();
+</script>
+<!-- ============ /REMEDY FEEDBACK WIDGET ============ -->
+
+</body>
+</html>

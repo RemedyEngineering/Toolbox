@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="../shared/theme.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 1) TITLE: rename for your tool -->
+<title>New Tool — Remedy Engineering</title>
+
+<!-- 2) SHARED BRAND STYLES (header, tabs, toast, palette) — do not edit here -->
+<link rel="stylesheet" href="../shared/remedy-core.css?v=1">
+
+<!-- 3) PAGE CONFIG: the only header bits you change per tool -->
+<script>
+  window.REMEDY_PAGE = {
+    eyebrow: 'Remedy Engineering · HVAC Tool',
+    title:   'New Tool',     // ← shows in the header
+    active:  'tools'         // 'home' | 'tools' | 'docs'
+  };
+</script>
+
+<!-- 4) TOOL-SPECIFIC STYLES: put ONLY this tool's CSS here -->
+<style>
+  .container { max-width: 980px; margin: 18px auto; padding: 0 16px; }
+  .card { background:var(--white); border:1px solid var(--border); box-shadow:0 1px 2px rgba(0,0,0,0.04); }
+  .card-head {
+    background: var(--charcoal); color:var(--on-dark); font-weight:bold; font-size:11px;
+    letter-spacing:2px; text-transform:uppercase; padding:9px 14px; border-bottom:3px solid var(--orange);
+  }
+  .card-body { padding: 16px 18px 18px; }
+  .control-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .control-row label {
+    font-size:11px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--grey); min-width:160px;
+  }
+  .control-row input {
+    flex:1; font-family:inherit; font-size:15px; font-weight:bold; color:var(--orange-d);
+    background:var(--cream); border:1px solid var(--border); padding:8px 10px;
+  }
+  .readout { background:var(--cream); border-left:4px solid var(--orange); padding:14px 16px; margin-top:12px; }
+  .readout .val { font-size:28px; font-weight:bold; color:var(--orange-d); }
+  .footer { background:var(--charcoal); color:var(--on-dark); font-size:12px; padding:10px 24px; margin-top:16px; text-align:center; }
+</style>
+</head>
+<body>
+
+<!-- The shared header + tab nav + greeting is injected here automatically.
+     (Leave this placeholder where you want the header to appear.) -->
+<div id="remedy-header"></div>
+
+<!-- ============================================================
+     TOOL BODY — build your calculator here. Everything above and
+     below is shared boilerplate you should not need to touch.
+     ============================================================ -->
+<div class="container">
+  <div class="card">
+    <div class="card-head">New Tool</div>
+    <div class="card-body">
+      <div class="control-row">
+        <label for="inputA">Input value</label>
+        <input id="inputA" type="number" value="100" step="1">
+      </div>
+      <div class="readout">
+        <div style="font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--grey);">Result</div>
+        <div class="val"><span id="result">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============================================================
+     /TOOL BODY
+     ============================================================ -->
+
+<div class="footer">Remedy Engineering &nbsp;|&nbsp; Internal tool</div>
+
+<!-- 5) SHARED SCRIPTS (header, achievements, feedback) — order matters, keep as-is.
+        Bump ?v=N across pages when you update a shared file (see DEVELOPER_GUIDE.md). -->
+<script src="../shared/header.js?v=1"></script>
+<script src="../shared/achievements.js?v=1"></script>
+<script src="../shared/feedback.js?v=1"></script>
+
+<!-- 6) TOOL LOGIC: your calculator's own JavaScript -->
+<script>
+  'use strict';
+  var inputA = document.getElementById('inputA');
+  var result = document.getElementById('result');
+  function recalc() {
+    var v = parseFloat(inputA.value);
+    result.textContent = isFinite(v) ? (v * 2).toLocaleString('en-US') : '—';
+  }
+  inputA.addEventListener('input', recalc);
+  recalc();
+
+  /* OPTIONAL — tool-specific achievements. Unlock IDs from shared/achievements.js:
+     try { __achievementsAPI.unlock('some_id'); } catch (e) {} */
+</script>
+</body>
+</html>

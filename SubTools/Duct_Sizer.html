@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script src="../shared/theme.js?v=1"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Remedy Engineering — Ductwork Sizing Calculator</title>
+<style>
+  :root {
+    --charcoal:#2B2B2B; --orange:#ef702d; --orange-d:#c45a1e;
+    --amber:#F0A010; --lime:#99a668; --lime-d:#839053;
+    --pale-or:#fde8d5; --pale-lime:#e8edda; --key-lime:#D6E5A8;
+    --cream:#FFF4E0; --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F4F4F4;
+  }
+  * { box-sizing: border-box; }
+  html { margin: 0; padding: 0; scrollbar-gutter: stable; }
+  body { margin: 0; padding: 0; }
+  body {
+    font-family: Calibri, "Segoe UI", Tahoma, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 14px;
+  }
+
+  /* ---- Header ---- */
+  /* ======== HEADER (canonical) ======== */
+  .header {
+    background: var(--white, var(--white));
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border, var(--border));
+    gap: 18px; flex-wrap: wrap;
+  }
+  .header-left { display: flex; align-items: center; gap: 18px; }
+  .header img { height: 52px; display: block; }
+  .header-divider { width: 1px; height: 44px; background: var(--border, var(--border)); }
+  .header-titles { line-height: 1.1; }
+  .header .eyebrow {
+    font-size: 11px; font-weight: bold; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--orange-d, var(--orange-d)); margin-bottom: 4px;
+  }
+  .header h1 {
+    margin: 0; font-size: 22px; font-weight: bold;
+    color: var(--ink, var(--ink)); letter-spacing: 0.3px;
+  }
+
+  /* ======== GREETING (canonical) ======== */
+  .greeting {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 13px; color: var(--grey, var(--grey));
+  }
+  .greeting strong { color: var(--ink, var(--ink)); font-weight: 600; }
+  .greeting .pencil-btn {
+    background: transparent; border: none; padding: 2px 4px;
+    cursor: pointer; font-size: 14px; line-height: 1;
+    color: var(--grey-l, var(--grey-l));
+    opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .greeting:hover .pencil-btn { opacity: 1; }
+  .greeting .pencil-btn:hover { color: var(--orange, var(--orange)); }
+
+  /* ======== ACCENT STRIPES (canonical) ======== */
+  .accent-stripes { display: flex; height: 5px; }
+  .accent-stripes span { flex: 1; }
+  .accent-stripes .s-charcoal { background: var(--charcoal, var(--charcoal)); }
+  .accent-stripes .s-orange   { background: var(--orange, var(--orange)); }
+  .accent-stripes .s-lime     { background: var(--lime-d, var(--lime-d)); }
+
+  /* ======== TAB NAV (canonical) ======== */
+  .tabnav {
+    background: var(--charcoal, var(--charcoal));
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    padding: 0 12px;
+  }
+  .tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 22px;
+    color: rgba(255,244,224,0.72);
+    text-decoration: none;
+    font-size: 12px; font-weight: bold;
+    letter-spacing: 2px; text-transform: uppercase;
+    border-bottom: 3px solid transparent;
+    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+  }
+  .tab:hover { color: var(--on-dark); background: var(--charcoal-2, var(--charcoal-2)); }
+  .tab.is-active {
+    color: var(--on-dark);
+    border-bottom-color: var(--orange, var(--orange));
+    background: var(--charcoal-2, var(--charcoal-2));
+  }
+  .tab .tab-dot { width: 7px; height: 7px; background: var(--lime, var(--lime)); display: inline-block; }
+  .tab.is-active .tab-dot { background: var(--orange, var(--orange)); }
+  @media (max-width: 800px) {
+    .tab { padding: 12px 14px; font-size: 11px; letter-spacing: 1.5px; }
+  }
+  @media (max-width: 640px) {
+    .header { padding: 10px 16px; gap: 12px; }
+    .header img { height: 40px; }
+    .header-divider { height: 36px; }
+    .header h1 { font-size: 18px; }
+    .header .eyebrow { font-size: 10px; letter-spacing: 1.5px; }
+  }
+  .accent-bar { height: 4px; background: var(--orange); }
+
+.back-link:hover { background: var(--orange); color: var(--on-dark); }
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip {
+    background: var(--charcoal); color: var(--on-dark);
+    font-style: italic; font-weight: bold; font-size: 13px; padding: 6px 24px;
+  }
+
+  /* ---- Layout ---- */
+  .container {
+    max-width: 1280px; margin: 16px auto; padding: 0 16px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+
+  /* ---- Cards ---- */
+  .card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: 2px; margin-bottom: 16px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card-head {
+    background: var(--charcoal); color: var(--on-dark); font-weight: bold;
+    font-size: 11px; padding: 9px 14px; letter-spacing: 2px;
+    text-transform: uppercase; border-bottom: 3px solid var(--orange);
+  }
+  .card-note { font-size: 12px; font-style: italic; color: var(--grey); padding: 8px 12px 0; }
+  .card-body { padding: 8px 12px 12px; }
+
+  /* ---- Mode selector ---- */
+  .mode-row {
+    display: grid; grid-template-columns: 1.5fr 2fr; gap: 6px;
+    align-items: center; padding: 4px 0 10px;
+    border-bottom: 1px dashed var(--border); margin-bottom: 6px;
+  }
+  .mode-row label { font-weight: bold; color: var(--ink); }
+  .mode-row select {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); padding: 6px 6px; cursor: pointer;
+  }
+
+  /* ---- Input rows ---- */
+  .row {
+    display: grid;
+    grid-template-columns: 26px 1.5fr 1.3fr 110px;
+    gap: 8px;
+    align-items: center;
+    padding: 4px 0;
+  }
+  .row label { font-weight: bold; color: var(--ink); }
+  .row .tag {
+    font-size: 10px; font-weight: normal;
+    color: var(--grey); font-style: italic; margin-left: 6px;
+  }
+  .row input[type="number"] {
+    font-family: inherit; font-size: 14px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); text-align: center;
+    padding: 5px 6px; width: 100%; outline: none; min-width: 0;
+  }
+  .row input:focus { border-color: var(--orange); }
+  .swap-btn {
+    background: var(--cream); color: var(--orange-d);
+    border: 1px solid var(--border); padding: 5px 4px;
+    cursor: pointer; font-family: inherit; font-size: 12px;
+    font-weight: bold; width: 100%; white-space: nowrap;
+  }
+  .swap-btn:hover {
+    background: var(--orange); color: var(--on-dark); border-color: var(--orange);
+  }
+
+  /* ---- Computed row look ---- */
+  .row.computed > input[type="number"] {
+    background: var(--key-lime);
+    color: var(--ink);
+    font-weight: bold;
+  }
+
+  /* ---- Driver checkbox ---- */
+  .driver-cb {
+    width: 18px; height: 18px; cursor: pointer;
+    accent-color: var(--orange); justify-self: center; margin: 0;
+  }
+  .driver-cb:disabled { cursor: not-allowed; opacity: 0.55; }
+
+  /* ---- Duct Size combined row ---- */
+  .duct-pair {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto 1fr;
+    gap: 5px;
+    align-items: center;
+  }
+  .duct-pair input[type="number"] {
+    font-family: inherit; font-size: 14px; font-weight: bold;
+    color: var(--orange-d); background: var(--cream);
+    border: 1px solid var(--border); text-align: center;
+    padding: 5px 4px; outline: none; width: 100%; min-width: 0;
+  }
+  .duct-pair input[type="number"]:focus { border-color: var(--orange); }
+  .duct-pair input.computed-input {
+    background: var(--key-lime);
+    color: var(--ink);
+  }
+  .duct-pair .mini-cb {
+    width: 16px; height: 16px; margin: 0;
+    accent-color: var(--orange); cursor: pointer;
+  }
+  .duct-pair .dim-x {
+    color: var(--grey); font-weight: bold;
+    text-align: center; padding: 0 1px;
+  }
+
+  /* ---- Output rows ---- */
+  .out-head {
+    display: grid; grid-template-columns: 2fr 1fr 0.8fr 1fr 0.8fr;
+    gap: 6px; background: var(--pale-or); font-weight: bold;
+    padding: 6px 8px; margin-bottom: 4px;
+  }
+  .out-row {
+    display: grid; grid-template-columns: 2fr 1fr 0.8fr 1fr 0.8fr;
+    gap: 6px; align-items: center; padding: 3px 8px;
+  }
+  .out-row label { font-weight: bold; color: var(--ink); }
+  .out-val {
+    background: var(--pale-lime); border: 1px solid var(--border);
+    text-align: center; font-weight: bold; padding: 5px 6px;
+    font-variant-numeric: tabular-nums; color: var(--ink);
+  }
+  .out-val.key { background: var(--key-lime); font-size: 15px; }
+  .out-unit { font-size: 12px; color: var(--grey); }
+  .out-row-unitless .out-val { grid-column: 2 / -1; }
+
+  /* ---- Reference tables ---- */
+  table.ref { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ref th {
+    background: var(--pale-or); color: var(--ink);
+    font-weight: bold; text-align: left; padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  table.ref th.num { text-align: center; }
+  table.ref td {
+    padding: 5px 8px; border-bottom: 1px solid var(--hair);
+    font-variant-numeric: tabular-nums;
+  }
+  table.ref td.num { text-align: center; }
+  .ref-hint { font-size: 12px; color: var(--grey); margin-top: 6px; font-style: italic; }
+
+  /* ---- Footer ---- */
+  .footer {
+    background: var(--charcoal); color: var(--on-dark);
+    font-size: 12px; padding: 8px 24px; margin-top: 16px;
+  }
+  .footer a { color: var(--lime); text-decoration: none; }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 640px) {
+    
+    body { font-size: 13px; }    
+    .accent-bar { font-size: 12px; padding: 6px 12px; }    
+    .container { margin: 8px auto; padding: 0 8px; gap: 8px; }    
+    .card { margin-bottom: 8px; }    
+    .card-head { font-size: 13px; padding: 7px 10px; }    
+    .card-body { padding: 8px 10px 10px; }    
+    .row { grid-template-columns: 20px 1.4fr 1fr 90px; gap: 4px; }    
+    .row label { font-size: 12px; }    
+    .row input[type="number"] { font-size: 13px; padding: 6px 4px; }    
+    .swap-btn { padding: 6px 2px; font-size: 11px; }    
+    .duct-pair { gap: 3px; }    
+    .duct-pair input[type="number"] { font-size: 13px; padding: 6px 2px; }    
+    .duct-pair .mini-cb { width: 14px; height: 14px; }    
+    .mode-row { grid-template-columns: 1fr 1.4fr; }    
+    .mode-row select { font-size: 12px; }    
+    .out-head, .out-row {
+      grid-template-columns: 1.5fr 1fr 0.6fr 1fr 0.6fr;
+      gap: 4px; padding: 4px 6px;
+    }    
+    .out-head { font-size: 12px; }    
+    .out-row label { font-size: 12px; }    
+    .out-val { padding: 5px 4px; font-size: 12px; }    
+    .out-val.key { font-size: 13px; }    
+    .out-unit { font-size: 10px; }    
+    table.ref { font-size: 12px; }    
+    table.ref th, table.ref td { padding: 4px 6px; }    
+    .footer { padding: 8px 12px; font-size: 11px; }
+  }
+
+  /* ============ ACHIEVEMENT TOAST ============ */
+  .ach-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    cursor: pointer;
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--charcoal, var(--charcoal)); color: var(--on-dark, var(--on-dark));
+    padding: 14px 18px; max-width: 340px;
+    border-left: 4px solid var(--orange, #e8862a);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    z-index: 9999;
+  }
+  .ach-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .ach-toast-emoji { font-size: 28px; line-height: 1; flex-shrink: 0; }
+  .ach-toast-text { display: flex; flex-direction: column; gap: 2px; }
+  .ach-toast-label {
+    font-size: 9px; font-weight: bold; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--orange, #e8862a);
+  }
+  .ach-toast-title { font-size: 14px; font-weight: bold; }
+  .ach-toast-desc { font-size: 11px; color: rgba(255,244,224,0.7); }
+  .ach-toast-reward { font-size: 10px; color: var(--orange-l, var(--orange-l)); font-style: italic; margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="data:image/png;base64,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" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · HVAC Tool</div>
+      <h1>Ductwork Sizing Calculator</h1>
+    </div>
+  </div>
+
+  <div class="greeting" id="greeting">
+    <span id="greet-text">Welcome.</span>
+    <button class="pencil-btn" id="greet-edit" title="Edit profile" aria-label="Edit profile">&#9998;</button>
+  </div>
+</div>
+<div class="accent-stripes" aria-hidden="true">
+  <span class="s-charcoal"></span>
+  <span class="s-orange"></span>
+  <span class="s-lime"></span>
+</div>
+<nav class="tabnav" aria-label="Primary">
+  <a class="tab" href="../Remedy_Home.html"><span class="tab-dot"></span>Home</a>
+  <a class="tab is-active" href="../Remedy_Tools.html"><span class="tab-dot"></span>Tools</a>
+  <a class="tab" href="../Training_Library.html"><span class="tab-dot"></span>Documentation</a>
+</nav>
+<div class="accent-bar"></div>
+<div class="accent-strip">Enter Flow + Head Loss — the duct sizes automatically at a 2:3 ratio. Lock a dimension to override; the other dimension auto-adjusts.</div>
+
+<div class="container">
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card">
+      <div class="card-head">Duct Sizing</div>
+      <div class="card-body">
+
+        <div class="card-note" style="padding:0 0 6px 0;">
+          Default drivers are <b>Flow</b> + <b>Head Loss</b>. The Duct Size row auto-fills at a 2:3 ratio (wider than high). Check the box beside Width or Height and edit the value to override that dimension — the other one auto-adjusts to keep the design intent. Check both to fully override; Head Loss then becomes a result.
+        </div>
+
+        <div class="row" data-key="Q" id="row_Q">
+          <input type="checkbox" class="driver-cb" data-key="Q" id="cb_Q" title="Use as driver">
+          <label>Flow Rate (Q) <span class="tag" id="tag_Q"></span></label>
+          <input type="number" id="Q_val" value="1000" step="any">
+          <button class="swap-btn" data-swap="Q" title="Switch units">cfm ⇄</button>
+        </div>
+
+        <div class="row" data-key="dP" id="row_dP">
+          <input type="checkbox" class="driver-cb" data-key="dP" id="cb_dP" title="Use as driver">
+          <label>Head Loss (ΔP/L) <span class="tag" id="tag_dP"></span></label>
+          <input type="number" id="dP_val" value="0.1" step="any">
+          <button class="swap-btn" data-swap="dP" title="Switch units">in/100ft ⇄</button>
+        </div>
+
+        <div class="row" data-key="V" id="row_V">
+          <input type="checkbox" class="driver-cb" data-key="V" id="cb_V" title="Use as driver">
+          <label>Velocity (V) <span class="tag" id="tag_V"></span></label>
+          <input type="number" id="V_val" value="1500" step="any">
+          <button class="swap-btn" data-swap="V" title="Switch units">fpm ⇄</button>
+        </div>
+
+        <div class="row" data-key="D" id="row_D">
+          <input type="checkbox" class="driver-cb" data-key="D" id="cb_D" title="Use as driver">
+          <label>Equivalent Diameter (D) <span class="tag" id="tag_D"></span></label>
+          <input type="number" id="D_val" value="12" step="any">
+          <button class="swap-btn" data-swap="D" title="Switch units">in ⇄</button>
+        </div>
+
+        <div class="row" data-key="ab" id="row_ab">
+          <span></span>
+          <label>Duct Size <span class="tag" id="tag_ab"></span></label>
+          <div class="duct-pair">
+            <input type="checkbox" class="driver-cb mini-cb" data-key="a" id="cb_a" title="Lock Width">
+            <input type="number" id="a_val" value="12" step="any">
+            <span class="dim-x">×</span>
+            <input type="checkbox" class="driver-cb mini-cb" data-key="b" id="cb_b" title="Lock Height">
+            <input type="number" id="b_val" value="8" step="any">
+          </div>
+          <button class="swap-btn" data-swap="ab" title="Switch units">in ⇄</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="card">
+      <div class="card-head">Auxiliary Outputs  ·  Imperial &amp; SI</div>
+      <div class="card-body">
+        <div class="out-head">
+          <span>Result</span>
+          <span style="text-align:center">Imperial</span>
+          <span></span>
+          <span style="text-align:center">SI</span>
+          <span></span>
+        </div>
+        <div class="out-row">
+          <label>Head Loss (ΔP/L)</label>
+          <span class="out-val key" id="HL_imp">—</span>
+          <span class="out-unit">in WC / 100 ft</span>
+          <span class="out-val key" id="HL_si">—</span>
+          <span class="out-unit">Pa/m</span>
+        </div>
+        <div class="out-row">
+          <label>Equivalent Diameter</label>
+          <span class="out-val key" id="De_imp">—</span>
+          <span class="out-unit">in</span>
+          <span class="out-val key" id="De_si">—</span>
+          <span class="out-unit">mm</span>
+        </div>
+        <div class="out-row">
+          <label>Velocity Pressure</label>
+          <span class="out-val" id="Pv_imp">—</span>
+          <span class="out-unit">in WC</span>
+          <span class="out-val" id="Pv_si">—</span>
+          <span class="out-unit">Pa</span>
+        </div>
+        <div class="out-row">
+          <label>Flow Area</label>
+          <span class="out-val" id="A_imp">—</span>
+          <span class="out-unit">ft²</span>
+          <span class="out-val" id="A_si">—</span>
+          <span class="out-unit">m²</span>
+        </div>
+        <div class="out-row out-row-unitless">
+          <label>Reynolds Number</label>
+          <span class="out-val" id="Re_val">—</span>
+        </div>
+        <div class="out-row out-row-unitless">
+          <label>Friction Factor</label>
+          <span class="out-val" id="f_val">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Duct Sizing Criteria</div>
+      <div class="card-body">
+        <table class="ref" id="criteria_table">
+          <thead>
+            <tr>
+              <th class="num">Unit Size</th>
+              <th>Sizing Criteria</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:#B7D4EA;"><td class="num"><b>R/A</b></td><td>1200–1500 FPM</td></tr>
+            <tr style="background:#F8C7D2;"><td class="num"><b>S/A</b></td><td>0.1" w.c./100 ft, up to 2000 FPM</td></tr>
+            <tr style="background:#FFF59D;"><td class="num"><b>E/A</b></td><td>0.1" w.c./100 ft, up to 2000 FPM</td></tr>
+            <tr style="background:#C6E0A8;"><td class="num"><b>O/A</b></td><td>1200–1500 FPM</td></tr>
+          </tbody>
+        </table>
+        <div class="ref-hint">Typical design targets by duct service.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Fluid Properties (full width) -->
+<div class="container" style="grid-template-columns:1fr;">
+  <div>
+    <div class="card">
+      <div class="card-head">Fluid Properties</div>
+      <div class="card-note">Density and viscosity are looked up from the air temperature. Pick a duct material for roughness.</div>
+      <div class="card-body">
+
+        <div class="mode-row">
+          <label>Air Temperature</label>
+          <select id="air_temp">
+            <option value="0">32 °F  /  0 °C</option>
+            <option value="1">50 °F  /  10 °C</option>
+            <option value="2" selected>70 °F  /  21 °C  (standard)</option>
+            <option value="3">85 °F  /  29 °C</option>
+            <option value="4">100 °F  /  38 °C</option>
+            <option value="5">150 °F  /  66 °C</option>
+            <option value="6">200 °F  /  93 °C</option>
+            <option value="7">300 °F  /  149 °C</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:4px 0 8px;font-size:12px;color:var(--grey);">
+          <div>ρ = <span id="rho_disp" style="font-weight:bold;color:var(--orange-d);">0.0749</span> lb/ft³ &nbsp;/&nbsp; <span id="rho_disp_si" style="font-weight:bold;color:var(--orange-d);">1.200</span> kg/m³</div>
+          <div>μ = <span id="mu_disp" style="font-weight:bold;color:var(--orange-d);">0.0440</span> lb/(ft·hr) &nbsp;/&nbsp; <span id="mu_disp_si" style="font-weight:bold;color:var(--orange-d);">1.82e-5</span> Pa·s</div>
+        </div>
+
+        <div class="mode-row">
+          <label>Duct Material (ε)</label>
+          <select id="eps_material">
+            <option value="0" selected>McQuay default (galvanized) — 0.0005 ft / 0.15 mm</option>
+            <option value="1">Galvanized steel, new — 0.0003 ft / 0.09 mm</option>
+            <option value="2">Galvanized steel, aged — 0.0005 ft / 0.15 mm</option>
+            <option value="3">Aluminum — 0.00016 ft / 0.05 mm</option>
+            <option value="4">Stainless steel — 0.00007 ft / 0.02 mm</option>
+            <option value="5">Fibrous-glass duct liner — 0.005 ft / 1.5 mm</option>
+            <option value="6">Flex duct (fully extended) — 0.003 ft / 1.0 mm</option>
+            <option value="7">PVC — 0.000005 ft / 0.0015 mm</option>
+            <option value="8">Concrete (smooth) — 0.001 ft / 0.3 mm</option>
+          </select>
+        </div>
+
+        <div class="row" data-key="eps">
+          <span></span>
+          <label>Roughness (ε)</label>
+          <input type="number" id="eps_val" value="0.0005" step="any">
+          <button class="swap-btn" data-swap="eps" title="Switch units">ft ⇄</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  Remedy Engineering   |   Darcy–Weisbach + Swamee–Jain   |   Internal tool
+</div>
+
+<script>
+'use strict';
+
+/* ============================================================
+   ACHIEVEMENTS SYSTEM
+   ============================================================ */
+var __achievementsAPI = (function() {
+  var PREFIX = 'remedy.ach.';
+  var REGISTRY = [
+    // ── Unit Converter ──
+    { id: 'uc_first_convert',    emoji: '📐', title: 'Baby\'s First Conversion',    desc: 'You converted a unit. The engineering world trembles at your potential.' , reward: 'One (1) mass-produced participation ribbon.' },
+    { id: 'uc_hot_take',         emoji: '🌡️', title: 'Thermodynamic Personality',   desc: 'You converted a temperature. The thermostat war in your office rages on.' , reward: 'Ownership of exactly zero thermostats.' },
+    { id: 'uc_bilingual',        emoji: '🌍', title: 'Renaissance Engineer',        desc: 'Used every unit category. Your versatility is almost suspicious.' , reward: 'An honorary degree from a university we made up.' },
+    { id: 'uc_going_in_circles', emoji: '🔁', title: 'The Round Trip',              desc: 'Converted a value then immediately converted it back. We\'ve all been there.' , reward: 'A round-trip ticket to nowhere.' },
+    { id: 'uc_power_user',       emoji: '💯', title: 'Quantity Over Quality',       desc: '100 conversions. At this point you should probably just memorize the formula.' , reward: 'A lanyard that reads: Adequate.' },
+    { id: 'uc_absolute_zero',    emoji: '❄️', title: 'Absolute Zero Chill',         desc: '0 Kelvin. Nothing is colder than this except your office\'s server room.' , reward: 'A blanket. You clearly need one.' },
+    { id: 'uc_mystery',          emoji: '❓', title: 'The Audacity',                desc: 'You searched for a unit that doesn\'t exist. Points for confidence.' , reward: 'Nothing. Confidence is its own reward.' },
+    { id: 'uc_legend',           emoji: '🏛️', title: 'Professional Unit Botherer',  desc: '1,000 conversions. Google is free, but here we are.' , reward: 'A calculator. Since you clearly refuse to use one.' },
+    // ── Duct Sizer ──
+    { id: 'ds_first_duct',       emoji: '📏', title: 'Into the Void',               desc: 'You sized your first duct. Somewhere, an HVAC system just got a little less wrong.' , reward: 'A handshake from a man named Gerald.' },
+    { id: 'ds_design_friction',  emoji: '🎯', title: 'The Sweet Spot',              desc: '0.08–0.10 in.w.g./100ft. The engineering equivalent of a perfect parallel park.' , reward: 'Fifteen seconds of respectful silence.' },
+    { id: 'ds_speed_demon',      emoji: '💨', title: 'Mach Speed Ductwork',         desc: 'Velocity over 2,000 FPM. That\'s not a duct, that\'s a wind tunnel with ambitions.' , reward: 'A speeding ticket from the ductwork police.' },
+    { id: 'ds_reynolds',         emoji: '🔬', title: 'Turbulence Enthusiast',       desc: 'Re > 10,000. Turbulent flow, just like your Monday mornings.' , reward: 'A laminar flow of appreciation.' },
+    { id: 'ds_friction_fanatic', emoji: '🌀', title: 'Friction Fanatic',            desc: '50 duct calculations. Your dedication to airflow is statistically abnormal.' , reward: 'The admiration of absolutely no one at the party.' },
+    { id: 'ds_concrete',         emoji: '🧱', title: 'Brutalist Architecture',      desc: 'You selected concrete ducts. We have questions, but we respect the commitment.' , reward: 'A very heavy trophy. Made of concrete, naturally.' },
+    { id: 'ds_mystery',          emoji: '❓', title: 'Gentle Breeze',               desc: 'Under 200 FPM. That\'s not air distribution, that\'s a polite suggestion.' , reward: 'A gentle pat on the back. Almost imperceptible.' },
+    { id: 'ds_legend',           emoji: '🏗️', title: 'Duct Whisperer',             desc: '250 duct calcs. The ducts speak to you now. This is either expertise or a cry for help.' , reward: 'An office with a window. The window does not open.' },
+    // ── VAV Box Sizer ──
+    { id: 'vav_box_office',      emoji: '📦', title: 'Box Office Hit',              desc: 'First VAV box sized. One small step for airflow, one giant leap for your submittal.' , reward: 'A box. Inside the box is a smaller box.' },
+    { id: 'vav_in_zone',         emoji: '✅', title: 'Nailed It',                   desc: 'Flow landed perfectly between min and max. Screenshot this. It may never happen again.' , reward: 'Bragging rights. Non-transferable. Non-redeemable.' },
+    { id: 'vav_go_big',          emoji: '📏', title: 'Compensating for Something',  desc: 'You sized the 24×16. That\'s not a VAV box, that\'s a studio apartment.' , reward: 'A studio apartment. Inside a VAV box.' },
+    { id: 'vav_below_floor',     emoji: '⚠️', title: 'Underachiever',               desc: 'Hit the minimum flow warning. The box is disappointed in you.' , reward: 'A participation trophy. Hollow, like the flow rate.' },
+    { id: 'vav_goldilocks',      emoji: '🎯', title: 'Goldilocks Protocol',         desc: 'Sized every box from 4″ to 24×16. Put it on your resume.' , reward: 'Three bowls of porridge. All the wrong temperature.' },
+    { id: 'vav_thinking_small',  emoji: '🔹', title: 'Fun Sized',                   desc: '4″ box at minimum flow. For when the closet absolutely needs conditioned air.' , reward: 'A very small trophy for a very small achievement.' },
+    { id: 'vav_mystery',         emoji: '❓', title: 'Ambitious',                   desc: 'Over maximum on the biggest box. You dreamed too big and the box said no.' , reward: 'A motivational poster that reads: Aim Lower.' },
+    // ── Fan Static Calculator ──
+    { id: 'fs_under_pressure',   emoji: '🌬️', title: 'Under Pressure',              desc: 'First fan static calc complete. Queen and David Bowie would be proud.' , reward: 'A vinyl record you cannot play at work.' },
+    { id: 'fs_kitchen',          emoji: '🍕', title: 'Kitchen Nightmare',           desc: 'Grease-laden exhaust selected. May your ductwork never meet a match.' , reward: 'A pizza you will never receive.' },
+    { id: 'fs_collector',        emoji: '🏗️', title: 'Hoarder of Components',       desc: '10+ components in one system. This stopped being engineering three fittings ago.' , reward: 'More components. Obviously.' },
+    { id: 'fs_fire',             emoji: '🔥', title: 'Playing with Fire',           desc: 'High-temp smoke control selected. Please tell us this is theoretical.' , reward: 'A fire extinguisher. Decorative only.' },
+    { id: 'fs_safety',           emoji: '🛡️', title: 'Safety Third',                desc: 'Safety factor at 25%+. You\'ve been burned before. Figuratively. We hope.' , reward: 'A safety vest. For your spreadsheets.' },
+    { id: 'fs_multi_system',     emoji: '🏛️', title: 'System Hoarder',              desc: '5+ systems in one session. You\'re not sizing fans, you\'re building a civilization.' , reward: 'The title of Emperor. Subjects not included.' },
+    { id: 'fs_fume',             emoji: '☣️', title: 'Hazard Pay',                  desc: 'Fume exhaust selected. Your nose thanks you for the consideration.' , reward: 'A gas mask. Non-functional. Display purposes only.' },
+    { id: 'fs_mystery',          emoji: '❓', title: 'Credit Where Due',            desc: 'Named your engineer and exported. Taking credit — the most important engineering skill.' , reward: 'Your name in 8pt font on a PDF no one will open.' },
+    // ── Pipe Sizer ──
+    { id: 'ps_pipe_dream',       emoji: '🚿', title: 'Pipe Dream',                  desc: 'First pipe calc done. Water will flow. Probably in the right direction.' , reward: 'A pipe dream. It is literally a dream about a pipe.' },
+    { id: 'ps_fixture_fixer',    emoji: '🚽', title: 'Flush with Success',          desc: 'Used the sanitary DFU calculator. Glamorous work.' , reward: 'A golden plunger. Not actual gold. Not an actual plunger.' },
+    { id: 'ps_cold_blooded',     emoji: '🧊', title: 'Cold Blooded',                desc: '40%+ propylene glycol. Your pipes won\'t freeze but your budget might.' , reward: 'A parka. Your budget will need it.' },
+    { id: 'ps_triple_threat',    emoji: '🏗️', title: 'Triple Threat',               desc: 'Used all three pipe calculators. Hydronic, sanitary, domestic — the pipe trifecta nobody asked for.' , reward: 'A three-headed trophy. None of the heads match.' },
+    { id: 'ps_alchemist',        emoji: '⚗️', title: 'The Alchemist',               desc: 'Steel, copper, and PEX. You don\'t have a favourite material. You love them all equally.' , reward: 'A rock with googly eyes. We call it the Philosopher Stone.' },
+    { id: 'ps_steep_grade',      emoji: '📐', title: 'Steep Grade',                 desc: '1:25 sanitary slope. That drain has places to be.' , reward: 'A tiny sled. For the drain.' },
+    { id: 'ps_mystery',          emoji: '❓', title: 'Antifreeze Sommelier',        desc: '60% propylene glycol. At this point it\'s basically syrup.' , reward: 'A bottle of syrup. Regular syrup. Not glycol.' },
+    // ── Heating Loop ──
+    { id: 'hl_loop_de_loop',     emoji: '♨️', title: 'Loop de Loop',                desc: 'First heating loop complete. Warm feelings all around. Literally.' , reward: 'A warm feeling. Thermal, not emotional.' },
+    { id: 'hl_full_house',       emoji: '🏨', title: 'Full House',                  desc: '20+ terminal units. That\'s not a loop, that\'s a logistics operation.' , reward: 'A sitcom laugh track plays in your honour.' },
+    { id: 'hl_delta_force',      emoji: '🌡️', title: 'Delta Force',                 desc: 'ΔT of 40°F+. Subtlety was clearly not in the design brief.' , reward: 'A pair of sunglasses you did not ask for.' },
+    { id: 'hl_multi_loop',       emoji: '🔀', title: 'Multi-Loop Maestro',          desc: '3+ loops in one project. You\'re not designing heating, you\'re composing a symphony.' , reward: 'A baton. For conducting your symphony of loops.' },
+    { id: 'hl_load_bearer',      emoji: '🧮', title: 'Load Bearer',                 desc: '500+ MBH. That\'s not heating, that\'s a small industrial operation with a dream.' , reward: 'A hard hat. For your desk.' },
+    { id: 'hl_district_heat',    emoji: '🏭', title: 'District Heating Overlord',   desc: '2,000+ MBH. You are now personally responsible for warming a small neighborhood.' , reward: 'A small neighbourhood. Population: zero.' },
+    // ── Louver Sizer ──
+    { id: 'ls_fresh_intake',     emoji: '🌀', title: 'Fresh Intake',                desc: 'First louver sized. Fresh air is overrated, but code says otherwise.' , reward: 'A single breath of fresh air. Use wisely.' },
+    { id: 'ls_rain_brain',       emoji: '🌧️', title: 'Rain Brain',                  desc: 'Intake within drainable velocity limit. The building will stay dry. Probably.' , reward: 'An umbrella that does not close.' },
+    { id: 'ls_high_velocity',    emoji: '💨', title: 'Terminal Velocity',            desc: 'Exhaust over 1,000 FPM. That air is LEAVING and it\'s not coming back.' , reward: 'A farewell card for the departing air.' },
+    { id: 'ls_big_face',         emoji: '📐', title: 'Big Face Energy',             desc: 'Face area over 25 ft². That\'s not a louver, that\'s a window with commitment issues.' , reward: 'A comically oversized novelty cheque. Amount: $0.00.' },
+    { id: 'ls_velocity_check',   emoji: '⚡', title: 'Living on the Edge',          desc: 'Within 2% of max velocity. Bold. Reckless. Efficient.' , reward: 'An adrenaline rush. Invoice to follow.' },
+    { id: 'ls_mystery',          emoji: '❓', title: 'Warranty Voided',             desc: 'Exceeded the recommended intake velocity. The manufacturer just felt a disturbance.' , reward: 'A sternly worded letter from a louver manufacturer.' },
+    // ── Psychrometric ──
+    { id: 'psy_wet_bulb',        emoji: '💧', title: 'Certified Air Nerd',          desc: 'First psychrometric lookup complete. There is no going back.' , reward: 'A one-way ticket to the psychrometric chart dimension.' },
+    { id: 'psy_mile_high',       emoji: '🏔️', title: 'Mile High',                   desc: 'Elevation over 5,000 ft. The air is thinner but your calcs are not.' , reward: 'Thin air. You may keep it.' },
+    { id: 'psy_desert_dry',      emoji: '🌵', title: 'Bone Dry',                    desc: 'RH below 10%. Even the air is dehydrated. Drink some water.' , reward: 'A glass of water. Please actually drink it.' },
+    { id: 'psy_saturation',      emoji: '🌊', title: 'You Made a Cloud',            desc: '100% RH entered. Congratulations, you\'ve invented weather indoors.' , reward: 'Indoor weather rights. Non-transferable.' },
+    { id: 'psy_four_mode',       emoji: '🔬', title: 'Four-Mode Engineer',          desc: 'Used all four input modes. You are become psychrometrics, destroyer of comfort zones.' , reward: 'A lab coat. Slightly used. Mostly clean.' },
+    { id: 'psy_mystery',         emoji: '❓', title: 'Surface of the Sun',          desc: 'Dry-bulb over 120°F. Sir, this is a building, not a kiln.' , reward: 'SPF 5000 sunscreen. Theoretical protection only.' },
+    // ── Training Library ──
+    { id: 'tl_first_chapter',    emoji: '📖', title: 'Page Turner',                 desc: 'Opened your first training doc. Knowledge is power. Allegedly.' , reward: 'Knowledge. Allegedly.' },
+    { id: 'tl_template_tamer',   emoji: '📋', title: 'Standing on Shoulders',       desc: 'Downloaded a template. Honour the person who made this by filling it in correctly.' , reward: 'The eternal gratitude of whoever made that template.' },
+    { id: 'tl_code_walker',      emoji: '📜', title: 'Code Walker',                 desc: 'Accessed Codes & Standards. Light reading for the truly unhinged.' , reward: 'A bookmark. You will need several.' },
+    { id: 'tl_cross_disciplined',emoji: '🎓', title: 'Cross-Disciplined',           desc: '4+ library sections visited. You\'re either thorough or completely lost.' , reward: 'A compass. You are clearly lost.' },
+    { id: 'tl_deep_search',      emoji: '🔍', title: 'Deep Search',                 desc: 'Used search to find and open a doc. Ctrl+F energy, but for your career.' , reward: 'The satisfaction of not scrolling like a barbarian.' },
+    { id: 'tl_librarian',        emoji: '🏆', title: 'The Librarian',               desc: '50 documents opened. At this point, just move into the training library.' , reward: 'A library card. Valid at exactly zero libraries.' },
+    // ── Platform-Wide ──
+    { id: 'pw_fresh_air',        emoji: '👋', title: 'Hello World',                 desc: 'You entered your name. The toolbox now acknowledges you as a person.' , reward: 'Acknowledgement as a person. The bare minimum.' },
+    { id: 'pw_tool_tourist',     emoji: '🌐', title: 'Tool Tourist',                desc: 'Visited every tool. You\'ve seen things. Calculators. Dropdowns. Unspeakable tables.' , reward: 'A postcard from every tool. None are interesting.' },
+    { id: 'pw_deadline_eng',     emoji: '🌙', title: 'The Deadline Engineer',       desc: 'Using the toolbox between midnight and 4 AM. The project is due tomorrow, isn\'t it.' , reward: 'Imaginary coffee. Dangerously strong.' },
+    { id: 'pw_night_owl',        emoji: '🦉', title: 'Night Owl',                   desc: 'Toolbox use after 10 PM. Go home. Or don\'t. We\'re not your manager.' , reward: 'Permission to go home. You will not use it.' },
+    { id: 'pw_early_bird',       emoji: '🐦', title: 'Early Bird',                  desc: 'Toolbox use before 6 AM. Either extremely dedicated or haven\'t slept. Both valid.' , reward: 'A worm. The early bird gets one. Sorry.' },
+    { id: 'pw_seven_day_streak', emoji: '📅', title: '7-Day Streak',                desc: 'Seven days in a row. Weekends are a social construct anyway.' , reward: 'A calendar with the weekends removed.' },
+    { id: 'pw_search_party',     emoji: '🔎', title: 'Search Party',                desc: '100 searches. You have personally kept this search bar employed.' , reward: 'A magnifying glass. Mostly decorative.' },
+    { id: 'pw_egg_found',        emoji: '🥚', title: 'Easter Egg Hunter',           desc: 'Found a hidden easter egg. You weren\'t supposed to find that.' , reward: 'A chocolate egg. Digital. You cannot eat it.' },
+    { id: 'pw_bookworm',         emoji: '📚', title: 'Digital Hoarder',             desc: '5+ favourites. You favourite things like your career depends on it.' , reward: 'A bookshelf. Assembly required. Instructions missing.' },
+    { id: 'pw_organized',        emoji: '📁', title: 'Organized',                   desc: 'Reordered your favourites. Rearranging deck chairs, but productively.' , reward: 'A label maker. Batteries sold separately. Labels not included.' },
+    { id: 'pw_identity_crisis',  emoji: '🥸', title: 'Identity Crisis',             desc: 'Changed your name 3+ times. Still figuring things out. That\'s okay.' , reward: 'A name tag. Currently blank. Fitting.' },
+    { id: 'pw_profile_visitor',  emoji: '🪞', title: 'Self Reflection',             desc: 'Visited the profile page. Sometimes you just need to look yourself in the eye.' , reward: 'Self-awareness. Handle with care.' },
+    { id: 'pw_remedy_lifer',     emoji: '🎖️', title: 'Remedy Lifer',                desc: '40+ achievements. You\'re either incredibly thorough or procrastinating spectacularly.' , reward: 'A corner office in a building that has not been designed yet.' }
+  ];
+
+  var _toastEl = null;
+  var _toastTimer = null;
+  var _toastQueue = [];
+  var _toastShowing = false;
+
+  function _getToast() {
+    if (_toastEl) return _toastEl;
+    _toastEl = document.createElement('div');
+    _toastEl.className = 'ach-toast';
+    _toastEl.setAttribute('role', 'status');
+    _toastEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(_toastEl);
+    _toastEl.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html#achievements';
+    });
+    return _toastEl;
+  }
+
+  function _processQueue() {
+    if (_toastQueue.length === 0) { _toastShowing = false; return; }
+    _toastShowing = true;
+    var ach = _toastQueue.shift();
+    var el = _getToast();
+    el.innerHTML = '<span class="ach-toast-emoji">' + ach.emoji + '</span>' +
+      '<div class="ach-toast-text">' +
+        '<span class="ach-toast-label">Achievement Unlocked</span>' +
+        '<span class="ach-toast-title">' + ach.title + '</span>' +
+        '<span class="ach-toast-desc">' + ach.desc + '</span>' +
+        (ach.reward ? '<span class="ach-toast-reward">✦ ' + ach.reward + '</span>' : '') +
+      '</div>';
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function() {
+      el.classList.remove('show');
+      setTimeout(_processQueue, 350);
+    }, 3200);
+  }
+
+  function _showToast(ach) {
+    _toastQueue.push(ach);
+    if (!_toastShowing) _processQueue();
+  }
+
+  function unlock(id) {
+    var key = PREFIX + id;
+    if (localStorage.getItem(key)) return false;
+    localStorage.setItem(key, new Date().toISOString());
+    var ach = REGISTRY.find(function(a) { return a.id === id; });
+    if (ach) _showToast(ach);
+    _checkRemedy();
+    return true;
+  }
+
+  function isUnlocked(id) {
+    return !!localStorage.getItem(PREFIX + id);
+  }
+
+  function getAll() {
+    return REGISTRY.map(function(a) {
+      var ts = localStorage.getItem(PREFIX + a.id);
+      return { id: a.id, emoji: a.emoji, title: a.title, desc: a.desc, reward: a.reward || '', unlocked: !!ts, date: ts || null };
+    });
+  }
+
+  function getUnlockedCount() {
+    return REGISTRY.filter(function(a) { return !!localStorage.getItem(PREFIX + a.id); }).length;
+  }
+
+  function _checkRemedy() {
+    if (getUnlockedCount() >= 40) unlock('pw_remedy_lifer');
+  }
+
+  function trackPageVisit(page) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_visited') || '{}';
+      var visited = JSON.parse(raw);
+      visited[page] = 1;
+      localStorage.setItem(PREFIX + '_visited', JSON.stringify(visited));
+      var keys = Object.keys(visited);
+      if (visited.home && visited.tools && visited.docs) {
+        var allTools = ['duct_sizer','vav_sizer','fan_static','pipe_sizer','heating_loop','louver_sizer','unit_converter','psychrometric'];
+        var visitedAll = allTools.every(function(t) { return !!visited[t]; });
+        if (visitedAll) unlock('pw_tool_tourist');
+      }
+    } catch (e) {}
+  }
+
+  function trackSubtool(name) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_subtools') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(name) < 0) list.push(name);
+      localStorage.setItem(PREFIX + '_subtools', JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  function trackEggFound(query) {
+    try {
+      var raw = localStorage.getItem(PREFIX + '_eggs_found') || '[]';
+      var list = JSON.parse(raw);
+      if (list.indexOf(query) < 0) list.push(query);
+      localStorage.setItem(PREFIX + '_eggs_found', JSON.stringify(list));
+      unlock('pw_egg_found');
+    } catch (e) {}
+  }
+
+  function trackNameChange() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_nameChanges') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_nameChanges', '' + count);
+      if (count >= 3) unlock('pw_identity_crisis');
+    } catch (e) {}
+  }
+
+  function trackSearch() {
+    try {
+      var count = parseInt(localStorage.getItem(PREFIX + '_searchCount') || '0', 10) + 1;
+      localStorage.setItem(PREFIX + '_searchCount', '' + count);
+      if (count >= 100) unlock('pw_search_party');
+    } catch (e) {}
+  }
+
+  function trackDayVisit() {
+    try {
+      var today = new Date().toISOString().slice(0, 10);
+      var raw = localStorage.getItem(PREFIX + '_dayVisits') || '[]';
+      var days = JSON.parse(raw);
+      if (days[days.length - 1] !== today) {
+        days.push(today);
+        if (days.length > 14) days = days.slice(-14);
+        localStorage.setItem(PREFIX + '_dayVisits', JSON.stringify(days));
+      }
+      if (days.length >= 7) {
+        var last7 = days.slice(-7);
+        var streak = true;
+        for (var i = 1; i < last7.length; i++) {
+          var prev = new Date(last7[i-1]); var curr = new Date(last7[i]);
+          var diff = (curr - prev) / 86400000;
+          if (diff !== 1) { streak = false; break; }
+        }
+        if (streak) unlock('pw_seven_day_streak');
+      }
+    } catch (e) {}
+  }
+
+  function checkPageLoad() {
+    try {
+      var hr = new Date().getHours();
+      if (hr >= 22 || hr < 2) unlock('pw_night_owl');
+      if (hr >= 0 && hr < 4) unlock('pw_deadline_eng');
+      if (hr >= 4 && hr < 6) unlock('pw_early_bird');
+    } catch (e) {}
+
+    trackDayVisit();
+
+    try {
+      var path = location.pathname.replace(/\\/g, '/').split('/').pop() || '';
+      if (/Remedy_Home/i.test(path))            trackPageVisit('home');
+      else if (/Remedy_Tools/i.test(path))      trackPageVisit('tools');
+      else if (/Training_Library/i.test(path))  trackPageVisit('docs');
+      else if (/Remedy_Profile/i.test(path))    { trackPageVisit('profile'); unlock('pw_profile_visitor'); }
+      else if (/Duct_Sizer/i.test(path))        { trackPageVisit('duct_sizer');    trackSubtool('Duct_Sizer'); }
+      else if (/VAV_Sizer/i.test(path))         { trackPageVisit('vav_sizer');     trackSubtool('VAV_Sizer'); }
+      else if (/Fan_Static/i.test(path))        { trackPageVisit('fan_static');    trackSubtool('Fan_Static'); }
+      else if (/pipe-sizer/i.test(path))        { trackPageVisit('pipe_sizer');    trackSubtool('pipe_sizer'); }
+      else if (/Heating_Loop/i.test(path))      { trackPageVisit('heating_loop');  trackSubtool('Heating_Loop'); }
+      else if (/Louver_Sizer/i.test(path))      { trackPageVisit('louver_sizer');  trackSubtool('Louver_Sizer'); }
+      else if (/Unit_Converter/i.test(path))    { trackPageVisit('unit_converter');trackSubtool('Unit_Converter'); }
+      else if (/Psychrometric/i.test(path))     { trackPageVisit('psychrometric'); trackSubtool('Psychrometric'); }
+    } catch (e) {}
+
+    try {
+      if (typeof __favsAPI !== 'undefined') {
+        var favs = __favsAPI.load();
+        if (favs.length >= 5) unlock('pw_bookworm');
+      }
+    } catch (e) {}
+
+    try {
+      if (localStorage.getItem('remedy_egg_fresh_air')) unlock('pw_fresh_air');
+      if (localStorage.getItem('remedy_egg_deadline_date')) unlock('pw_deadline_eng');
+    } catch (e) {}
+  }
+
+  return {
+    REGISTRY: REGISTRY,
+    unlock: unlock,
+    isUnlocked: isUnlocked,
+    getAll: getAll,
+    getUnlockedCount: getUnlockedCount,
+    trackPageVisit: trackPageVisit,
+    trackSubtool: trackSubtool,
+    trackEggFound: trackEggFound,
+    trackNameChange: trackNameChange,
+    trackSearch: trackSearch,
+    trackDayVisit: trackDayVisit,
+    checkPageLoad: checkPageLoad
+  };
+})();
+
+
+// ---------- Unit conversions ----------
+const toSI = {
+  rho: (v,u) => u === "lb/ft³"      ? v * 16.01846       : v,
+  mu:  (v,u) => u === "lb/(ft·hr)"  ? v * 0.0004133789   : v,
+  eps: (v,u) => u === "ft"          ? v * 0.3048         : v * 0.001,
+  Q:   (v,u) => u === "cfm"         ? v * 0.0004719474   : v * 0.001,
+  len: (v,u) => u === "in"          ? v * 0.0254         : v * 0.001,
+  V:   (v,u) => u === "fpm"         ? v * 0.00508        : v,
+  dP:  (v,u) => u === "in WC / 100 ft" ? v / 0.12237     : v,
+};
+const fromSI = {
+  rho: (v,u) => u === "lb/ft³"      ? v / 16.01846       : v,
+  mu:  (v,u) => u === "lb/(ft·hr)"  ? v / 0.0004133789   : v,
+  eps: (v,u) => u === "ft"          ? v / 0.3048         : v * 1000,
+  Q:   (v,u) => u === "cfm"         ? v / 0.0004719474   : v * 1000,
+  len: (v,u) => u === "in"          ? v / 0.0254         : v * 1000,
+  V:   (v,u) => u === "fpm"         ? v / 0.00508        : v,
+  dP:  (v,u) => u === "in WC / 100 ft" ? v * 0.12237     : v,
+};
+const FAMILY = { rho:'rho', mu:'mu', eps:'eps', Q:'Q',
+                 D:'len', a:'len', b:'len', V:'V', dP:'dP' };
+
+// Current display unit per family group. a and b share the 'ab' group.
+const UNIT_OPTIONS = {
+  Q:   ['cfm', 'L/s'],
+  D:   ['in', 'mm'],
+  ab:  ['in', 'mm'],
+  V:   ['fpm', 'm/s'],
+  dP:  ['in WC / 100 ft', 'Pa/m'],
+  eps: ['ft', 'mm'],
+};
+const UNIT_LABELS = {
+  'cfm':'cfm', 'L/s':'L/s',
+  'in':'in', 'mm':'mm',
+  'fpm':'fpm', 'm/s':'m/s',
+  'in WC / 100 ft':'in/100ft', 'Pa/m':'Pa/m',
+  'ft':'ft',
+};
+let UNITS = {
+  Q:'cfm', D:'in', ab:'in', V:'fpm', dP:'in WC / 100 ft', eps:'ft'
+};
+function unitGroup(k) { return (k === 'a' || k === 'b') ? 'ab' : k; }
+function getUnit(k) { return UNITS[unitGroup(k)]; }
+
+// ---------- Driver / lock state ----------
+const ROTATABLE = ['Q','V','dP','D'];
+const NEEDED_DRIVERS = 2;
+let DRIVERS = new Set(['Q', 'dP']);
+let DRIVER_ORDER = ['Q', 'dP'];   // LRU: oldest at index 0
+let LOCKED = new Set();           // subset of {'a','b'}
+
+let AIR_RHO_SI = 1.200;
+let AIR_MU_SI  = 1.82e-5;
+
+function touchDriver(k) {
+  if (!ROTATABLE.includes(k)) return;
+  DRIVER_ORDER = DRIVER_ORDER.filter(x => x !== k);
+  DRIVER_ORDER.push(k);
+  DRIVERS.add(k);
+  while (DRIVER_ORDER.length > NEEDED_DRIVERS) {
+    let idx = DRIVER_ORDER.findIndex(x => x !== 'Q');
+    if (idx < 0) idx = 0;
+    const kicked = DRIVER_ORDER.splice(idx, 1)[0];
+    DRIVERS.delete(kicked);
+  }
+}
+
+// ---------- Physics ----------
+function frictionFactor(eps, D, Re) {
+  const inside = eps / (3.7 * D) + 5.74 / Math.pow(Re, 0.9);
+  return 0.25 / Math.pow(Math.log10(inside), 2);
+}
+function darcyDP(rho, V, D, eps, mu) {
+  const Re = rho * V * D / mu;
+  const f  = frictionFactor(eps, D, Re);
+  return f * rho * V * V / (2 * D);
+}
+function sizeFromHeadloss(Q, eps, rho, mu, dPdL) {
+  const g  = 9.80665;
+  const S  = dPdL / (rho * g);
+  const nu = mu / rho;
+  const t1 = Math.pow(eps, 1.25) * Math.pow(Q * Q / (g * S), 4.75);
+  const t2 = nu * Math.pow(Q, 9.4) * Math.pow(1 / (g * S), 5.2);
+  return 0.66 * Math.pow(t1 + t2, 0.04);
+}
+function solveV_fromD_dP(D, dP, rho, eps, mu) {
+  let V = 5;
+  for (let i = 0; i < 80; i++) {
+    const Re = rho * V * D / mu;
+    if (!(Re > 0)) return null;
+    const f = frictionFactor(eps, D, Re);
+    const V_new = Math.sqrt(2 * dP * D / (f * rho));
+    if (!isFinite(V_new) || V_new <= 0) return null;
+    if (Math.abs(V_new - V) < 1e-7) return V_new;
+    V = V_new;
+  }
+  return V;
+}
+function solveD_fromV_dP(V, dP, rho, eps, mu) {
+  let D = 0.3;
+  for (let i = 0; i < 80; i++) {
+    const Re = rho * V * D / mu;
+    if (!(Re > 0)) return null;
+    const f = frictionFactor(eps, D, Re);
+    const D_new = f * rho * V * V / (2 * dP);
+    if (!isFinite(D_new) || D_new <= 0) return null;
+    if (Math.abs(D_new - D) / D_new < 1e-7) return D_new;
+    D = D_new;
+  }
+  return D;
+}
+// SMACNA equivalent diameter: De = 1.30 · (a·b)^0.625 / (a+b)^0.25
+function deFromAB(a, b) { return 1.30 * Math.pow(a*b, 0.625) / Math.pow(a+b, 0.25); }
+// Solve the "other" dimension given De and one known dimension (bisection).
+function solveOtherDim(De, given) {
+  let lo = given * 0.01, hi = given * 100;
+  let fLo = deFromAB(given, lo) - De;
+  let fHi = deFromAB(given, hi) - De;
+  if (fLo * fHi > 0) return null;
+  for (let i = 0; i < 100; i++) {
+    const mid = 0.5 * (lo + hi);
+    const fMid = deFromAB(given, mid) - De;
+    if (Math.abs(fMid) < 1e-10 || (hi - lo) / mid < 1e-9) return mid;
+    if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
+    else { lo = mid; fLo = fMid; }
+  }
+  return 0.5 * (lo + hi);
+}
+
+// ---------- Helpers ----------
+function $(id) { return document.getElementById(id); }
+function valNum(id) {
+  const el = $(id);
+  if (!el) return null;
+  const v = parseFloat(el.value);
+  return isFinite(v) ? v : null;
+}
+function fmt(v, decimals, grouping) {
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const o = { minimumFractionDigits: decimals, maximumFractionDigits: decimals };
+  if (grouping) o.useGrouping = true;
+  return v.toLocaleString('en-US', o);
+}
+function setCell(id, txt) { const el = $(id); if (el) el.textContent = txt; }
+function setRowComputed(key, isComputed) {
+  const row = document.querySelector(`.row[data-key="${key}"]`);
+  if (!row) return;
+  row.classList.toggle('computed', isComputed);
+}
+
+// ---------- Driver / lock UI sync ----------
+// True when both duct dimensions are locked, which over-determines the geometry.
+// In that state only ONE flow driver stays a user input (preferring Q, then V,
+// then dP); every other rotatable variable — including Head Loss — becomes a
+// computed result, so its checkbox must clear and its row show the result look.
+function bothDimsLocked() { return LOCKED.has('a') && LOCKED.has('b'); }
+function preservedDriverKey() {
+  if (!bothDimsLocked()) return null;
+  return ['Q','V','dP'].find(k => DRIVERS.has(k)) || 'Q';
+}
+
+function applyDrivers() {
+  const bothLocked = bothDimsLocked();
+  const preserved  = preservedDriverKey();
+  // Q, D, V, dP: row-level computed look + checkbox state.
+  // When both dims are locked, only the single preserved driver is a real input —
+  // the rest are computed, so clear their checkboxes and flag the rows as results.
+  ['Q','D','V','dP'].forEach(k => {
+    const isDriver = bothLocked ? (k === preserved) : DRIVERS.has(k);
+    setRowComputed(k, !isDriver);
+    const cb = $('cb_' + k);
+    if (cb) cb.checked = isDriver;
+  });
+  // a, b: per-input computed look + checkbox state
+  ['a','b'].forEach(k => {
+    const isLocked = LOCKED.has(k);
+    const inp = $(k + '_val');
+    if (inp) inp.classList.toggle('computed-input', !isLocked);
+    const cb = $('cb_' + k);
+    if (cb) cb.checked = isLocked;
+  });
+}
+
+function updateUnitLabels() {
+  document.querySelectorAll('.swap-btn').forEach(btn => {
+    const k  = btn.getAttribute('data-swap');
+    const ug = (k === 'a' || k === 'b' || k === 'ab') ? 'ab' : k;
+    const u  = UNITS[ug];
+    btn.textContent = (UNIT_LABELS[u] || u) + '  ⇄';
+  });
+}
+
+// ---------- Solve & refresh ----------
+function refresh() {
+  const sRho = AIR_RHO_SI;
+  const sMu  = AIR_MU_SI;
+  const epsRaw = valNum('eps_val');
+  const sEps = epsRaw !== null ? toSI.eps(epsRaw, UNITS.eps) : null;
+
+  const bothLocked = bothDimsLocked();
+  // When both dims are locked, only ONE primary value stays user-controlled.
+  // Prefer Q, then V, then dP.
+  const preservedDriver = preservedDriverKey();
+
+  // Pull values
+  let Q = null, D = null, a = null, b = null, V = null, dP = null;
+  if (DRIVERS.has('Q'))  Q  = valNum('Q_val')  !== null ? toSI.Q (valNum('Q_val'),  UNITS.Q)  : null;
+  if (DRIVERS.has('D'))  D  = valNum('D_val')  !== null ? toSI.len(valNum('D_val'),  UNITS.D)  : null;
+  if (DRIVERS.has('V'))  V  = valNum('V_val')  !== null ? toSI.V (valNum('V_val'),  UNITS.V)  : null;
+  if (DRIVERS.has('dP')) dP = valNum('dP_val') !== null ? toSI.dP(valNum('dP_val'), UNITS.dP) : null;
+  if (LOCKED.has('a'))   a  = valNum('a_val')  !== null ? toSI.len(valNum('a_val'),  UNITS.ab) : null;
+  if (LOCKED.has('b'))   b  = valNum('b_val')  !== null ? toSI.len(valNum('b_val'),  UNITS.ab) : null;
+
+  const ok = (x) => x !== null && x > 0;
+  let De = null, A = null, Re = null, f = null, Pv = null;
+
+  if (ok(sRho) && ok(sMu) && ok(sEps)) {
+    try {
+      if (bothLocked && ok(a) && ok(b)) {
+        // Both dims set → De is fixed; preserve one primary, recompute the rest.
+        De = deFromAB(a, b);
+        A  = Math.PI * De * De / 4;
+        D  = De;
+        if (preservedDriver === 'Q' && ok(Q)) {
+          V = Q / A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        } else if (preservedDriver === 'V' && ok(V)) {
+          Q = V * A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        } else if (preservedDriver === 'dP' && ok(dP)) {
+          V = solveV_fromD_dP(De, dP, sRho, sEps, sMu);
+          if (ok(V)) Q = V * A;
+        } else if (ok(Q)) {
+          // Safe fallback
+          V = Q / A; dP = darcyDP(sRho, V, De, sEps, sMu);
+        }
+      } else {
+        // Solve De from the two rotatable drivers
+        const driverKey = [...DRIVERS].filter(k => ROTATABLE.includes(k)).sort().join('|');
+        switch (driverKey) {
+          case 'D|Q':
+            if (ok(Q) && ok(D)) { A = Math.PI * D * D / 4; V = Q / A; dP = darcyDP(sRho, V, D, sEps, sMu); }
+            break;
+          case 'Q|V':
+            if (ok(Q) && ok(V)) {
+              D = Math.sqrt(4 * Q / (Math.PI * V));
+              A = Math.PI * D * D / 4;
+              dP = darcyDP(sRho, V, D, sEps, sMu);
+            }
+            break;
+          case 'Q|dP':
+            if (ok(Q) && ok(dP)) {
+              D = sizeFromHeadloss(Q, sEps, sRho, sMu, dP);
+              A = Math.PI * D * D / 4;
+              V = Q / A;
+              dP = darcyDP(sRho, V, D, sEps, sMu);
+            }
+            break;
+          case 'D|V':
+            if (ok(D) && ok(V)) { A = Math.PI * D * D / 4; Q = V * A; dP = darcyDP(sRho, V, D, sEps, sMu); }
+            break;
+          case 'D|dP':
+            if (ok(D) && ok(dP)) {
+              V = solveV_fromD_dP(D, dP, sRho, sEps, sMu);
+              if (ok(V)) { A = Math.PI * D * D / 4; Q = V * A; }
+            }
+            break;
+          case 'V|dP':
+            if (ok(V) && ok(dP)) {
+              D = solveD_fromV_dP(V, dP, sRho, sEps, sMu);
+              if (ok(D)) {
+                A = Math.PI * D * D / 4;
+                Q = V * A;
+                dP = darcyDP(sRho, V, D, sEps, sMu);
+              }
+            }
+            break;
+        }
+        if (ok(D)) De = D;
+
+        // Derive a, b from De
+        if (ok(De)) {
+          if (LOCKED.has('a') && ok(a)) {
+            b = solveOtherDim(De, a);
+          } else if (LOCKED.has('b') && ok(b)) {
+            a = solveOtherDim(De, b);
+          } else {
+            // 2:3 ratio (wider than high): a = 1.5·b
+            // SMACNA: De = K · b where K = 1.30·(1.5)^0.625 / (2.5)^0.25
+            const K = 1.30 * Math.pow(1.5, 0.625) / Math.pow(2.5, 0.25);
+            b = De / K;
+            a = 1.5 * b;
+          }
+        }
+      }
+
+      if (ok(De) && ok(V)) {
+        Re = sRho * V * De / sMu;
+        f  = frictionFactor(sEps, De, Re);
+        Pv = 0.5 * sRho * V * V;
+      }
+    } catch (e) { /* fall through to dashes */ }
+  }
+
+  // ---- Write computed values back into input cells ----
+  function putComputed(key, si_value, family, unitVal) {
+    const inp = $(key + '_val');
+    if (!inp) return;
+    let isUserControlled;
+    if (key === 'a' || key === 'b') {
+      isUserControlled = LOCKED.has(key);
+    } else if (bothLocked) {
+      isUserControlled = (key === preservedDriver);
+    } else {
+      isUserControlled = DRIVERS.has(key);
+    }
+    if (isUserControlled) return;
+    if (!ok(si_value)) { inp.value = ''; return; }
+    const disp = fromSI[family](si_value, unitVal);
+    if (key === 'a' || key === 'b') {
+      inp.value = (unitVal === 'in') ? Math.ceil(disp) : Math.ceil(disp / 25) * 25;
+      return;
+    }
+    let dec;
+    if      (key === 'Q')  dec = 1;
+    else if (key === 'V')  dec = (unitVal === 'fpm') ? 0 : 2;
+    else if (key === 'dP') dec = (unitVal === 'in WC / 100 ft') ? 4 : 3;
+    else                   dec = (unitVal === 'in') ? 2 : 1;
+    inp.value = +disp.toFixed(dec);
+  }
+  putComputed('Q',  Q,  'Q',   UNITS.Q);
+  putComputed('D',  D,  'len', UNITS.D);
+  putComputed('a',  a,  'len', UNITS.ab);
+  putComputed('b',  b,  'len', UNITS.ab);
+  putComputed('V',  V,  'V',   UNITS.V);
+  putComputed('dP', dP, 'dP',  UNITS.dP);
+
+  // ---- Auxiliary outputs ----
+  if (ok(De)) {
+    setCell('De_imp', fmt(De / 0.0254, 2, true));
+    setCell('De_si',  fmt(De * 1000,   1, true));
+  } else { setCell('De_imp', '—'); setCell('De_si', '—'); }
+
+  if (ok(A)) {
+    setCell('A_imp',  fmt(A * 10.76391, 4, true));
+    setCell('A_si',   fmt(A,            4, true));
+  } else { setCell('A_imp', '—'); setCell('A_si', '—'); }
+
+  if (ok(Re)) setCell('Re_val', fmt(Re, 0, true)); else setCell('Re_val', '—');
+  if (ok(f))  setCell('f_val',  fmt(f, 4, false)); else setCell('f_val',  '—');
+
+  if (ok(Pv)) {
+    setCell('Pv_imp', fmt(Pv * 0.0040146, 4, true));
+    setCell('Pv_si',  fmt(Pv,             2, true));
+  } else { setCell('Pv_imp', '—'); setCell('Pv_si', '—'); }
+
+  if (ok(dP)) {
+    setCell('HL_imp', fmt(dP * 0.12237, 4, true));
+    setCell('HL_si',  fmt(dP,           3, true));
+  } else { setCell('HL_imp', '—'); setCell('HL_si', '—'); }
+}
+
+// ---------- Swap-unit button ----------
+function swapUnit(key) {
+  const ug = (key === 'a' || key === 'b' || key === 'ab') ? 'ab' : key;
+  const opts = UNIT_OPTIONS[ug];
+  const oldUnit = UNITS[ug];
+  const newUnit = opts.find(o => o !== oldUnit);
+  if (!newUnit) return;
+
+  const keysToConvert = (ug === 'ab') ? ['a', 'b'] : [key];
+  for (const k of keysToConvert) {
+    const fam = FAMILY[k] || FAMILY[key] || ug;
+    const inp = $(k + '_val');
+    if (!inp) continue;
+    const cur = parseFloat(inp.value);
+    if (!isFinite(cur)) continue;
+    const si  = toSI[fam](cur, oldUnit);
+    const disp = fromSI[fam](si, newUnit);
+    let dec = 4;
+    if (fam === 'len')      dec = (newUnit === 'in') ? 2 : 1;
+    else if (fam === 'Q')   dec = 1;
+    else if (fam === 'V')   dec = (newUnit === 'fpm') ? 0 : 2;
+    else if (fam === 'dP')  dec = (newUnit === 'in WC / 100 ft') ? 4 : 3;
+    else if (fam === 'eps') dec = (newUnit === 'ft') ? 6 : 4;
+    inp.value = +disp.toFixed(dec);
+  }
+  UNITS[ug] = newUnit;
+  updateUnitLabels();
+  refresh();
+}
+
+// ---------- Reference data ----------
+const RHO_TABLE = [
+  [32,   0, 0.0807, 1.293],
+  [50,  10, 0.0778, 1.247],
+  [70,  21, 0.0749, 1.200],
+  [85,  29, 0.0729, 1.168],
+  [100, 38, 0.0708, 1.135],
+  [150, 66, 0.0650, 1.041],
+  [200, 93, 0.0602, 0.964],
+  [300,149, 0.0522, 0.836],
+];
+const MU_TABLE = [
+  [32,   0, 0.0416, 1.72e-5],
+  [50,  10, 0.0427, 1.77e-5],
+  [70,  21, 0.0440, 1.82e-5],
+  [85,  29, 0.0449, 1.86e-5],
+  [100, 38, 0.0459, 1.90e-5],
+  [150, 66, 0.0491, 2.03e-5],
+  [200, 93, 0.0520, 2.15e-5],
+  [300,149, 0.0577, 2.39e-5],
+];
+const EPS_TABLE = [
+  ["McQuay default (galvanized)",0.0005,    0.15],
+  ["Galvanized steel (new)",     0.0003,    0.09],
+  ["Galvanized steel (aged)",    0.0005,    0.15],
+  ["Aluminum",                   0.00016,   0.05],
+  ["Stainless steel",            0.00007,   0.02],
+  ["Fibrous-glass duct liner",   0.005,     1.5],
+  ["Flex duct (fully extended)", 0.003,     1.0],
+  ["PVC",                        0.000005,  0.0015],
+  ["Concrete (smooth)",          0.001,     0.3],
+];
+
+function applyRoughness() {
+  const idx = parseInt($('eps_material').value, 10) || 0;
+  const [, ft, mm] = EPS_TABLE[idx];
+  $('eps_val').value = (UNITS.eps === 'ft') ? ft : mm;
+}
+function applyAirTemp() {
+  const idx = parseInt($('air_temp').value, 10) || 0;
+  const [, , rhoLb, rhoKg] = RHO_TABLE[idx];
+  const [, , muLb,  muPa]  = MU_TABLE[idx];
+  AIR_RHO_SI = rhoKg;
+  AIR_MU_SI  = muPa;
+  $('rho_disp').textContent    = rhoLb.toFixed(4);
+  $('rho_disp_si').textContent = rhoKg.toFixed(3);
+  $('mu_disp').textContent     = muLb.toFixed(4);
+  $('mu_disp_si').textContent  = muPa.toExponential(2);
+}
+
+// ---------- Init ----------
+function init() {
+  $('eps_material').addEventListener('change', () => {
+    applyRoughness();
+    refresh();
+  });
+  $('air_temp').addEventListener('change', () => {
+    applyAirTemp();
+    refresh();
+  });
+  $('eps_val').addEventListener('input', refresh);
+
+  // Q, D, V, dP — typing auto-promotes to driver
+  ['Q','D','V','dP'].forEach(k => {
+    const inp = $(k + '_val');
+    inp.addEventListener('focus', () => {
+      inp.select();
+      if (LOCKED.has('a') && LOCKED.has('b')) {
+        LOCKED.delete('b');
+        applyDrivers();
+        refresh();
+      }
+    });
+    inp.addEventListener('input', () => {
+      if (!DRIVERS.has(k)) {
+        touchDriver(k);
+        applyDrivers();
+      }
+      refresh();
+    });
+  });
+
+  // a, b — typing auto-LOCKs that dimension (does NOT touch Q/dP)
+  ['a','b'].forEach(k => {
+    const inp = $(k + '_val');
+    inp.addEventListener('focus', () => inp.select());
+    inp.addEventListener('input', () => {
+      if (!LOCKED.has(k)) {
+        LOCKED.add(k);
+        applyDrivers();
+      }
+      refresh();
+    });
+  });
+
+  // Swap-unit buttons
+  document.querySelectorAll('.swap-btn').forEach(btn => {
+    btn.addEventListener('click', () => swapUnit(btn.getAttribute('data-swap')));
+  });
+
+  // Driver / lock checkboxes
+  document.querySelectorAll('.driver-cb').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const k = cb.getAttribute('data-key');
+      if (k === 'a' || k === 'b') {
+        if (cb.checked) LOCKED.add(k);
+        else LOCKED.delete(k);
+        applyDrivers();
+        refresh();
+        return;
+      }
+      // Rotatable drivers (Q/V/dP/D)
+      if (cb.checked) {
+        touchDriver(k);
+      } else {
+        if (DRIVERS.size <= NEEDED_DRIVERS) {
+          cb.checked = true; // can't drop below minimum
+          return;
+        }
+        DRIVERS.delete(k);
+        DRIVER_ORDER = DRIVER_ORDER.filter(x => x !== k);
+      }
+      applyDrivers();
+      refresh();
+    });
+  });
+
+  applyAirTemp();
+  applyRoughness();
+  updateUnitLabels();
+  applyDrivers();
+  refresh();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+__achievementsAPI.checkPageLoad();
+
+/* ── Greeting + Profile Link ── */
+(function() {
+  var NAME_KEY = 'remedy.userName.v1';
+  function getName() { return (localStorage.getItem(NAME_KEY) || '').trim(); }
+  function paintGreeting() {
+    var el = document.getElementById('greet-text');
+    if (!el) return;
+    var n = getName();
+    el.innerHTML = n ? 'Welcome, <strong>' + n + '</strong>.' : 'Welcome.';
+  }
+  paintGreeting();
+  var pencil = document.getElementById('greet-edit');
+  if (pencil) {
+    pencil.addEventListener('click', function() {
+      window.location.href = '../Remedy_Profile.html';
+    });
+  }
+  window.addEventListener('storage', function(e) {
+    if (e && e.key === NAME_KEY) paintGreeting();
+  });
+})();
+
+
+/* ── Achievement Tracking (Duct Sizer) ── */
+(function() {
+  var _dsCalcCount = parseInt(localStorage.getItem('remedy.ach._ductCalcCount') || '0', 10);
+
+  function checkDuctAch() {
+    try {
+      // Read actual output elements
+      var hlImp = document.getElementById('HL_imp');
+      var reEl  = document.getElementById('Re_val');
+      var vInp  = document.getElementById('V_val');
+      var matSel = document.getElementById('eps_material');
+
+      if (!hlImp || hlImp.textContent === '—') return;
+
+      var hf = parseFloat((hlImp.textContent || '').replace(/,/g, ''));
+      var Re = reEl ? parseFloat((reEl.textContent || '').replace(/,/g, '')) : NaN;
+      var V  = vInp ? parseFloat(vInp.value) : NaN;
+
+      // First Duct
+      __achievementsAPI.unlock('ds_first_duct');
+
+      // Count
+      _dsCalcCount++;
+      localStorage.setItem('remedy.ach._ductCalcCount', '' + _dsCalcCount);
+      if (_dsCalcCount >= 50) __achievementsAPI.unlock('ds_friction_fanatic');
+      if (_dsCalcCount >= 250) __achievementsAPI.unlock('ds_legend');
+
+      // Design Friction (0.08-0.10 in WC/100ft)
+      if (!isNaN(hf) && hf >= 0.08 && hf <= 0.10) __achievementsAPI.unlock('ds_design_friction');
+
+      // Speed Demon (velocity > 2000 FPM)
+      if (!isNaN(V) && V > 2000) __achievementsAPI.unlock('ds_speed_demon');
+
+      // Walking Speed (secret: velocity < 200 FPM)
+      if (!isNaN(V) && V > 0 && V < 200) __achievementsAPI.unlock('ds_mystery');
+
+      // Reynolds Whisperer
+      if (!isNaN(Re) && Re > 10000) __achievementsAPI.unlock('ds_reynolds');
+
+      // Concrete Ducts
+      if (matSel) {
+        var selIdx = matSel.selectedIndex;
+        var selText = selIdx >= 0 ? (matSel.options[selIdx].text || '') : '';
+        if (selText.toLowerCase().indexOf('concrete') >= 0) __achievementsAPI.unlock('ds_concrete');
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('input', function() { setTimeout(checkDuctAch, 120); });
+  document.addEventListener('change', function() { setTimeout(checkDuctAch, 120); });
+})();
+
+</script>
+<!-- ============ REMEDY FEEDBACK WIDGET ============ -->
+<style>
+  #remedy-fb-fab {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9000;
+    background: var(--orange); color: var(--on-dark); border: none;
+    padding: 12px 18px; border-radius: 28px;
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif; font-size: 13px;
+    font-weight: bold; letter-spacing: 1px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    cursor: pointer; transition: background 0.15s, transform 0.15s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-fab:hover { background: var(--orange-d); transform: translateY(-2px); }
+  #remedy-fb-fab .fb-icon { font-size: 16px; }
+  #remedy-fb-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(43,43,43,0.55); z-index: 9100;
+    display: none; align-items: center; justify-content: center;
+  }
+  #remedy-fb-overlay.open { display: flex; }
+  #remedy-fb-modal {
+    background: var(--white); width: 480px; max-width: 92vw; max-height: 88vh;
+    overflow-y: auto;
+    border-top: 5px solid var(--orange);
+    font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
+    color: var(--ink);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+  }
+  #remedy-fb-modal .fb-head {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  #remedy-fb-modal .fb-head h2 { margin: 0; font-size: 18px; color: var(--ink); }
+  #remedy-fb-modal .fb-head .fb-x {
+    background: transparent; border: none; font-size: 24px;
+    cursor: pointer; color: var(--grey-l); line-height: 1; padding: 0 4px;
+  }
+  #remedy-fb-modal .fb-head .fb-x:hover { color: var(--bad); }
+  #remedy-fb-modal .fb-body { padding: 16px 20px; }
+  #remedy-fb-modal .fb-row { margin-bottom: 14px; }
+  #remedy-fb-modal label {
+    display: block; font-size: 11px; font-weight: bold;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange-d); margin-bottom: 4px;
+  }
+  #remedy-fb-modal .fb-page-display {
+    font-size: 13px; color: var(--ink); font-weight: bold;
+    padding: 6px 10px; background: var(--cream);
+    border-left: 3px solid var(--orange);
+  }
+  #remedy-fb-modal select,
+  #remedy-fb-modal textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    border: 1px solid var(--border); padding: 7px 9px;
+    background: var(--white); color: var(--ink);
+    box-sizing: border-box;
+  }
+  #remedy-fb-modal textarea { min-height: 110px; resize: vertical; }
+  #remedy-fb-modal select:focus,
+  #remedy-fb-modal textarea:focus { outline: 2px solid var(--orange); outline-offset: -1px; }
+  #remedy-fb-modal .fb-screenshot-note {
+    background: var(--cream); border-left: 3px solid var(--lime);
+    padding: 8px 10px; font-size: 11px; color: var(--grey);
+    line-height: 1.4;
+  }
+  #remedy-fb-modal .fb-screenshot-note b { color: var(--orange-d); }
+  #remedy-fb-modal .fb-foot {
+    padding: 14px 20px; background: var(--bg);
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: flex-end; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot button {
+    font-family: inherit; font-size: 13px; font-weight: bold;
+    padding: 8px 16px; border: none; cursor: pointer;
+    letter-spacing: 0.5px;
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel {
+    background: var(--white); color: var(--ink); border: 1px solid var(--border);
+  }
+  #remedy-fb-modal .fb-foot .fb-cancel:hover { background: var(--bg); }
+  #remedy-fb-modal .fb-foot .fb-send {
+    background: var(--lime); color: var(--on-dark);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  #remedy-fb-modal .fb-foot .fb-send:hover { background: var(--lime-d); }
+  #remedy-fb-modal .fb-foot .fb-send:disabled {
+    background: var(--border); cursor: not-allowed; opacity: 0.85;
+  }
+  #remedy-fb-modal .fb-spinner {
+    width: 12px; height: 12px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: var(--white);
+    border-radius: 50%;
+    animation: remedy-fb-spin 0.7s linear infinite;
+    display: none;
+  }
+  #remedy-fb-modal .fb-foot .fb-send.is-sending .fb-spinner { display: inline-block; }
+  @keyframes remedy-fb-spin { to { transform: rotate(360deg); } }
+  #remedy-fb-toast {
+    position: fixed; bottom: 80px; right: 24px;
+    background: var(--charcoal); color: var(--on-dark);
+    padding: 10px 16px; font-family: Calibri,sans-serif; font-size: 13px;
+    border-left: 4px solid var(--lime); z-index: 9200;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    opacity: 0; transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    max-width: 360px;
+  }
+  #remedy-fb-toast.show { opacity: 1; transform: translateY(0); }
+  @media print { #remedy-fb-fab, #remedy-fb-overlay, #remedy-fb-toast { display: none !important; } }
+</style>
+
+<button id="remedy-fb-fab" type="button" aria-label="Send feedback">
+  <span class="fb-icon">&#9993;</span><span>Feedback</span>
+</button>
+
+<div id="remedy-fb-overlay" role="dialog" aria-modal="true" aria-labelledby="remedy-fb-title">
+  <div id="remedy-fb-modal">
+    <div class="fb-head">
+      <h2 id="remedy-fb-title">Send Feedback</h2>
+      <button class="fb-x" id="remedy-fb-close" aria-label="Close">&times;</button>
+    </div>
+    <div class="fb-body">
+      <div class="fb-row">
+        <label>Page</label>
+        <div class="fb-page-display" id="remedy-fb-page">&mdash;</div>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-type">Type</label>
+        <select id="remedy-fb-type">
+          <option>Bug</option>
+          <option>Suggestion</option>
+          <option>Question</option>
+          <option>General</option>
+        </select>
+      </div>
+      <div class="fb-row">
+        <label for="remedy-fb-comment">Comments</label>
+        <textarea id="remedy-fb-comment" placeholder="What happened, what you expected, or what you'd like added&hellip;"></textarea>
+      </div>
+      <div class="fb-row">
+        <div class="fb-screenshot-note">
+          <b>Need to share a screenshot?</b> Email it separately to Colson and reference this page name &mdash; the page name is included automatically with every feedback message.
+        </div>
+      </div>
+    </div>
+    <div class="fb-foot">
+      <button class="fb-cancel" id="remedy-fb-cancel" type="button">Cancel</button>
+      <button class="fb-send" id="remedy-fb-send" type="button">
+        <span class="fb-spinner"></span>
+        <span class="fb-send-label">Send Feedback</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="remedy-fb-toast"></div>
+
+<script>
+(function() {
+  'use strict';
+  var ACCESS_KEY = 'aab66b178e7f443592bd3c906d930053';
+  var ENDPOINT = 'https://formly.email/submit';
+
+  var fab = document.getElementById('remedy-fb-fab');
+  var overlay = document.getElementById('remedy-fb-overlay');
+  var closeBtn = document.getElementById('remedy-fb-close');
+  var cancelBtn = document.getElementById('remedy-fb-cancel');
+  var sendBtn = document.getElementById('remedy-fb-send');
+  var sendLabel = sendBtn.querySelector('.fb-send-label');
+  var typeSel = document.getElementById('remedy-fb-type');
+  var commentEl = document.getElementById('remedy-fb-comment');
+  var pageEl = document.getElementById('remedy-fb-page');
+  var toastEl = document.getElementById('remedy-fb-toast');
+
+  function getPageLabel() {
+    var t = (document.title || '').trim();
+    if (t) return t;
+    var p = location.pathname.split('/').pop() || 'Unknown';
+    return p.replace(/\.html?$/i, '').replace(/_/g, ' ');
+  }
+  function lsGet(k) {
+    try { return (localStorage.getItem(k) || '').trim(); } catch (_) { return ''; }
+  }
+  function getUserName() {
+    return lsGet('remedy.userName.v1') || lsGet('remedy.user.name');
+  }
+  function getUserEmail() {
+    return lsGet('remedy.email.v1') || lsGet('remedy.user.email') || lsGet('remedy.userEmail.v1');
+  }
+
+  function toast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.style.borderLeftColor = isError ? '#B00000' : '#99a668';
+    toastEl.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 3500);
+  }
+
+  function openModal() {
+    pageEl.textContent = getPageLabel();
+    overlay.classList.add('open');
+    setTimeout(function(){ commentEl.focus(); }, 30);
+  }
+  function closeModal() { overlay.classList.remove('open'); }
+
+  fab.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+  });
+
+  function setSending(isSending) {
+    sendBtn.disabled = isSending;
+    sendBtn.classList.toggle('is-sending', isSending);
+    sendLabel.textContent = isSending ? 'Sending…' : 'Send Feedback';
+    cancelBtn.disabled = isSending;
+  }
+
+  sendBtn.addEventListener('click', function() {
+    var comment = (commentEl.value || '').trim();
+    if (!comment) {
+      toast('Please add a comment before sending.', true);
+      commentEl.focus();
+      return;
+    }
+
+    var name = getUserName() || '(not set)';
+    var email = getUserEmail() || '(not set in profile)';
+    var page = getPageLabel();
+    var type = typeSel.value;
+    var when = new Date().toLocaleString();
+
+    var fd = new FormData();
+    fd.append('access_key', ACCESS_KEY);
+    fd.append('subject', 'Remedy Tools Feedback: ' + type + ' — ' + page);
+    fd.append('from_name', 'Remedy Tools Feedback');
+    if (email && email.indexOf('@') > 0) fd.append('replyto', email);
+    fd.append('Tester', name);
+    fd.append('Tester Email', email);
+    fd.append('Page', page);
+    fd.append('URL', location.href);
+    fd.append('Type', type);
+    fd.append('Submitted', when);
+    fd.append('Comments', comment);
+
+    setSending(true);
+
+    fetch(ENDPOINT, { method: 'POST', body: fd })
+      .then(function(res) { return res.json().then(function(json){ return { ok: res.ok, json: json }; }); })
+      .then(function(r) {
+        if (r.ok && r.json && r.json.success) {
+          toast('Feedback sent — thanks!');
+          setTimeout(function(){
+            closeModal();
+            commentEl.value = '';
+            typeSel.selectedIndex = 0;
+          }, 400);
+        } else {
+          var msg = (r.json && r.json.message) ? r.json.message : 'Server rejected the submission.';
+          toast('Could not send: ' + msg, true);
+        }
+      })
+      .catch(function(err) {
+        var msg = (err && err.message) ? err.message : 'Network error.';
+        toast('Send failed: ' + msg + ' — check your connection or firewall.', true);
+      })
+      .finally(function() {
+        setSending(false);
+      });
+  });
+})();
+</script>
+<!-- ============ /REMEDY FEEDBACK WIDGET ============ -->
+
+</body>
+</html>

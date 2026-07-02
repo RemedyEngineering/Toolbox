@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Natural Gas Pipe Sizer — Remedy Engineering</title>
+<style>
+  :root {
+    --charcoal:#404040; --orange:#F06020; --orange-d:#C04000;
+    --amber:#F0A010; --lime:#A4C748; --lime-d:#7FA630;
+    --pale-or:#FBE5D6; --pale-lime:#EAF1D7; --cream:#FFF4E0;
+    --white:#FFFFFF; --grey:#595959; --grey-l:#8C8C8C;
+    --border:#BFBFBF; --bg:#F7F7F7; --red:#B00000;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; }
+  body { font-family: Calibri,"Segoe UI",Tahoma,sans-serif; color: var(--charcoal); background: var(--bg); font-size: 14px; }
+  .header { background:#fff; display:flex; align-items:center; justify-content:space-between; padding:12px 24px; border-bottom:1px solid var(--border); gap:16px; }
+  .header-left { display:flex; align-items:center; gap:16px; }
+  .header img { height: 52px; }
+  .header-divider { width:1px; height:42px; background:var(--border); }
+  .header-titles { line-height:1.1; }
+  .header .eyebrow { font-size:11px; font-weight:bold; letter-spacing:2px; text-transform:uppercase; color:var(--orange-d); margin-bottom:3px; }
+  .header h1 { margin:0; font-size:24px; font-weight:bold; color:var(--charcoal); }
+  .back-link { font-size:12px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; text-decoration:none; color:var(--orange-d); border:2px solid var(--orange); padding:6px 12px; white-space:nowrap; transition:all .1s; }
+  .back-link:hover { background: var(--orange); color:#fff; }
+  .accent-bar { height: 4px; background: var(--orange); }
+  .accent-strip { background: var(--charcoal); color:#fff; font-style:italic; font-weight:bold; font-size:13px; padding:6px 24px; }
+  .container { max-width: 1280px; margin: 18px auto; padding: 0 16px; display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+  .card { background:#fff; border:1px solid var(--border); }
+  .card.full { grid-column: 1 / -1; }
+  .card-head { background: var(--charcoal); color:#fff; font-weight:bold; font-size:11px; letter-spacing:2px; text-transform:uppercase; padding:9px 14px; border-bottom: 3px solid var(--orange); }
+  .card-body { padding: 14px 16px 16px; }
+  .control-row { display:flex; align-items:center; gap:10px; margin-bottom:11px; }
+  .control-row label { font-size:11px; font-weight:bold; letter-spacing:1.5px; text-transform:uppercase; color: var(--grey); min-width: 160px; }
+  select, input[type="number"] { flex:1; font-family:inherit; font-size:14px; font-weight:bold; color: var(--orange-d); background: var(--cream); border:1px solid var(--border); padding: 8px 10px; outline: none; }
+  select:focus, input[type="number"]:focus { border-color: var(--orange); box-shadow: 0 0 0 2px rgba(240,96,32,0.15); }
+  .seg-row { display: flex; gap: 6px; align-items: center; padding: 5px 0; }
+  .seg-row input, .seg-row select { padding: 6px 8px; font-size: 13px; }
+  .seg-row input.idx { background: var(--charcoal); color:#fff; min-width: 38px; text-align: center; font-weight: bold; flex: 0 0 38px; padding: 6px 4px; }
+  .add-btn { font-family: inherit; font-size:11px; font-weight: bold; letter-spacing:1.5px; text-transform: uppercase; color:#fff; background: var(--orange); border: 0; padding: 8px 14px; cursor: pointer; }
+  .add-btn:hover { background: var(--orange-d); }
+  .del-btn { background:#fff; color: var(--red); border: 1px solid var(--border); padding:6px 8px; cursor: pointer; font-weight:bold; }
+  .del-btn:hover { background: var(--red); color:#fff; border-color: var(--red); }
+  table.results { width:100%; border-collapse: collapse; font-size: 13px; margin-top:6px; }
+  table.results th { background: var(--charcoal); color:#fff; padding: 7px 8px; text-align: left; font-size:10px; font-weight:bold; letter-spacing:1.5px; text-transform: uppercase; border-bottom: 3px solid var(--orange); }
+  table.results th.num, table.results td.num { text-align: center; font-variant-numeric: tabular-nums; }
+  table.results td { padding: 7px 8px; border-bottom: 1px solid #EEE; }
+  table.results tr.ok td { background: var(--pale-lime); }
+  table.results tr.bad td { background: #FBE5D6; }
+  table.results td .size { font-weight: bold; color: var(--orange-d); font-size: 14px; }
+  .summary { display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .summary .cell { background: var(--cream); border-left: 4px solid var(--orange); padding: 10px 12px; }
+  .summary .cell .lbl { font-size:10px; font-weight:bold; letter-spacing:2px; text-transform: uppercase; color: var(--grey); margin-bottom:4px; }
+  .summary .cell .val { font-size: 18px; font-weight: bold; color: var(--orange-d); font-variant-numeric: tabular-nums; }
+  .note { margin-top: 12px; padding: 10px 14px; background: #FFFBF0; border-left: 4px solid var(--amber); font-size: 12px; color: var(--grey); line-height: 1.5; }
+  .note b { color: var(--charcoal); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="../remedy-logo.png" alt="Remedy Engineering">
+    <div class="header-divider"></div>
+    <div class="header-titles">
+      <div class="eyebrow">Remedy Engineering · Plumbing Tool</div>
+      <h1>Natural Gas Pipe Sizer</h1>
+    </div>
+  </div>
+  <a class="back-link" href="../Remedy_Tools.html">← All Tools</a>
+</div>
+<div class="accent-bar"></div>
+<div class="accent-strip">Size each segment by longest-length method per CSA B149.1 / IFGC Table 402.4(2).</div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="card-head">Design Conditions</div>
+    <div class="card-body">
+      <div class="control-row">
+        <label>Pipe material</label>
+        <select id="material">
+          <option value="steel" selected>Schedule 40 black steel</option>
+          <option value="cstss">Corrugated stainless steel (CSST)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label>Inlet pressure</label>
+        <select id="inlet">
+          <option value="lp" selected>≤ 2 psi (low pressure — 0.5 in w.c. drop)</option>
+          <option value="mp">2 psi (1.0 psi drop allowance)</option>
+          <option value="5psi">5 psi (3.5 psi drop allowance)</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <label>Heating value</label>
+        <input id="hv" type="number" step="any" value="1000">
+        <span style="font-size:11px; font-weight:bold; color: var(--grey);">BTU/ft³</span>
+      </div>
+      <div class="control-row">
+        <label>Specific gravity</label>
+        <input id="sg" type="number" step="any" value="0.60">
+        <span style="font-size:11px; font-weight:bold; color: var(--grey);">(air = 1)</span>
+      </div>
+      <div class="note">
+        <b>Longest-length method:</b> Find the run from meter to the farthest appliance; that length sizes every branch.
+        Tool uses that length for every segment as a conservative one-shot size.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Run Geometry</div>
+    <div class="card-body">
+      <div class="control-row">
+        <label>Longest run length</label>
+        <input id="L" type="number" step="any" value="80">
+        <span style="font-size:11px; font-weight:bold; color: var(--grey);">ft</span>
+      </div>
+      <div class="summary">
+        <div class="cell"><div class="lbl">Total load</div><div class="val" id="sumLoad">—</div></div>
+        <div class="cell"><div class="lbl">Total CFH</div><div class="val" id="sumCfh">—</div></div>
+        <div class="cell"><div class="lbl">Segments</div><div class="val" id="sumSegs">0</div></div>
+      </div>
+      <div class="note">
+        Tip: enter appliances in load order (water heater, range, dryer, furnace, etc.). Each segment carries the cumulative load downstream of that point.
+      </div>
+    </div>
+  </div>
+
+  <div class="card full">
+    <div class="card-head">Appliances &amp; Segments</div>
+    <div class="card-body">
+      <div id="segWrap"></div>
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button id="addBtn" class="add-btn" type="button">+ Add appliance</button>
+        <button id="seedBtn" class="add-btn" type="button" style="background: var(--charcoal);">Load example</button>
+      </div>
+
+      <table class="results">
+        <thead>
+          <tr>
+            <th>#</th><th>Appliance</th><th class="num">Input (BTU/h)</th><th class="num">Cumulative CFH</th><th class="num">Pipe size</th><th class="num">Capacity (CFH)</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="resBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+// IFGC 2018 Table 402.4(2) — Schedule 40 metallic pipe, 0.5 in w.c. drop, 0.60 sg, low pressure
+// CFH capacity by nominal pipe size at standard lengths (ft).
+// Lengths: 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 125, 150, 175, 200
+const STEEL_LP_TABLE = {
+  '1/2':   [172, 118, 95,  81,  72,  65,  60,  56,  52,  50,  44,  40,  37,  34],
+  '3/4':   [360, 247, 199, 170, 151, 137, 126, 117, 110, 104, 92,  83,  77,  72],
+  '1':     [678, 466, 374, 320, 284, 257, 237, 220, 207, 195, 173, 157, 144, 134],
+  '1-1/4': [1390,955, 767, 657, 583, 528, 486, 452, 424, 400, 355, 322, 296, 275],
+  '1-1/2': [2090,1430,1150,985, 873, 791, 728, 677, 635, 600, 532, 482, 443, 412],
+  '2':     [4020,2760,2220,1900,1680,1520,1400,1300,1220,1160,1020,928, 854, 794],
+  '2-1/2': [6400,4400,3530,3020,2680,2430,2230,2080,1950,1840,1630,1480,1360,1260],
+  '3':     [11300,7780,6250,5350,4740,4290,3950,3670,3450,3260,2890,2610,2410,2240],
+  '4':     [23100,15900,12700,10900,9660,8760,8050,7490,7030,6640,5890,5330,4910,4570]
+};
+const STEEL_LENGTHS = [10,20,30,40,50,60,70,80,90,100,125,150,175,200];
+
+// CSST table is roughly 60–80% of steel for equivalent length; use a uniform 0.7 derate as planning.
+const CSST_DERATE = 0.70;
+
+// Drop multipliers (rough Spitzglass-style scaling) for higher-pressure systems
+const DROP_MULT = { lp: 1.0, mp: Math.sqrt(1.0/0.5), '5psi': Math.sqrt(3.5/0.5) };
+
+function capCFH(size, lenFt, material, drop) {
+  const row = STEEL_LP_TABLE[size];
+  if (!row) return null;
+  // Find bracketing lengths
+  let i = 0;
+  while (i < STEEL_LENGTHS.length - 1 && STEEL_LENGTHS[i+1] < lenFt) i++;
+  let cap;
+  if (lenFt <= STEEL_LENGTHS[0]) cap = row[0];
+  else if (lenFt >= STEEL_LENGTHS[STEEL_LENGTHS.length - 1]) cap = row[row.length - 1];
+  else {
+    const L0 = STEEL_LENGTHS[i], L1 = STEEL_LENGTHS[i+1];
+    const f = (lenFt - L0) / (L1 - L0);
+    cap = row[i] + f * (row[i+1] - row[i]);
+  }
+  cap = cap * (DROP_MULT[drop] || 1.0);
+  if (material === 'cstss') cap = cap * CSST_DERATE;
+  // Adjust for specific gravity (rough sqrt scaling)
+  return cap;
+}
+
+const SIZES = ['1/2','3/4','1','1-1/4','1-1/2','2','2-1/2','3','4'];
+
+const COMMON = [
+  { name: 'Water heater (40 gal)', btu: 40000 },
+  { name: 'Range / cooktop',       btu: 65000 },
+  { name: 'Clothes dryer',         btu: 35000 },
+  { name: 'Furnace (80k)',         btu: 80000 },
+  { name: 'Furnace (100k)',        btu: 100000 },
+  { name: 'Boiler (199k)',         btu: 199000 },
+  { name: 'Pool heater',           btu: 250000 },
+  { name: 'Outdoor grill',         btu: 50000 },
+  { name: 'Fireplace insert',      btu: 30000 },
+  { name: 'Custom',                btu: 0 }
+];
+
+let segments = [];
+
+const segWrap = document.getElementById('segWrap');
+const resBody = document.getElementById('resBody');
+
+function renderSegs() {
+  segWrap.innerHTML = '';
+  segments.forEach((s, idx) => {
+    const row = document.createElement('div');
+    row.className = 'seg-row';
+    row.innerHTML = `
+      <input class="idx" value="${idx+1}" readonly>
+      <select data-i="${idx}" class="apl" style="flex:2">${COMMON.map(c => `<option value="${c.btu}" ${s.preset === c.name ? 'selected':''}>${c.name}</option>`).join('')}</select>
+      <input type="text" data-i="${idx}" class="nm" value="${s.name}" placeholder="Name" style="flex:2; background:#fff;">
+      <input type="number" data-i="${idx}" class="bt" value="${s.btu}" step="1000" style="flex:1.2">
+      <span style="font-size:11px; color:var(--grey); font-weight:bold;">BTU/h</span>
+      <button class="del-btn" data-i="${idx}" type="button">×</button>`;
+    segWrap.appendChild(row);
+  });
+  segWrap.querySelectorAll('.apl').forEach(sel => sel.addEventListener('change', e => {
+    const i = +e.target.dataset.i;
+    const opt = COMMON.find(c => String(c.btu) === e.target.value && c.name !== 'Custom');
+    if (opt) {
+      segments[i].btu = opt.btu;
+      segments[i].name = opt.name;
+      segments[i].preset = opt.name;
+      renderSegs(); recompute();
+    }
+  }));
+  segWrap.querySelectorAll('.nm').forEach(inp => inp.addEventListener('input', e => {
+    segments[+e.target.dataset.i].name = e.target.value; recompute();
+  }));
+  segWrap.querySelectorAll('.bt').forEach(inp => inp.addEventListener('input', e => {
+    segments[+e.target.dataset.i].btu = Math.max(0, parseFloat(e.target.value) || 0); recompute();
+  }));
+  segWrap.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', e => {
+    segments.splice(+e.target.dataset.i, 1); renderSegs(); recompute();
+  }));
+}
+
+function recompute() {
+  const L = Math.max(10, parseFloat(document.getElementById('L').value) || 10);
+  const hv = Math.max(500, parseFloat(document.getElementById('hv').value) || 1000);
+  const mat = document.getElementById('material').value;
+  const drop = document.getElementById('inlet').value;
+
+  // Cumulative load from farthest appliance back to meter (downstream-first ordering for branch sizing)
+  // For simplicity: each segment carries its own + every subsequent appliance (treat list as load order, last item is at end of run).
+  // Building cumulative load for each segment = sum of (this + later)
+  resBody.innerHTML = '';
+  let totalBtu = 0;
+  segments.forEach(s => totalBtu += s.btu);
+  const totalCfh = totalBtu / hv;
+
+  document.getElementById('sumLoad').textContent = totalBtu > 0 ? (totalBtu.toLocaleString('en-US', {maximumFractionDigits:0})) + ' BTU/h' : '—';
+  document.getElementById('sumCfh').textContent  = totalCfh > 0 ? totalCfh.toFixed(1) + ' CFH' : '—';
+  document.getElementById('sumSegs').textContent = segments.length;
+
+  // Each row: cumulative downstream load = sum of segments[i..end]
+  for (let i = 0; i < segments.length; i++) {
+    let cumBtu = 0;
+    for (let j = i; j < segments.length; j++) cumBtu += segments[j].btu;
+    const cumCfh = cumBtu / hv;
+
+    // Find smallest size whose capacity at length L is >= cumCfh
+    let pickedSize = null, pickedCap = null;
+    for (const sz of SIZES) {
+      const c = capCFH(sz, L, mat, drop);
+      if (c >= cumCfh) { pickedSize = sz; pickedCap = c; break; }
+    }
+    let status = '', cls = 'ok';
+    if (cumCfh <= 0) { status = '—'; cls = ''; }
+    else if (!pickedSize) { status = 'Exceeds 4" capacity'; cls = 'bad'; pickedSize = '> 4"'; pickedCap = capCFH('4', L, mat, drop); }
+    else status = 'OK';
+
+    const tr = document.createElement('tr');
+    tr.className = cls;
+    tr.innerHTML = `
+      <td class="num">${i+1}</td>
+      <td>${segments[i].name || '—'}</td>
+      <td class="num">${segments[i].btu.toLocaleString('en-US')}</td>
+      <td class="num">${cumCfh.toFixed(1)}</td>
+      <td class="num"><span class="size">${pickedSize ? pickedSize + '"' : '—'}</span></td>
+      <td class="num">${pickedCap !== null ? pickedCap.toFixed(0) : '—'}</td>
+      <td>${status}</td>`;
+    resBody.appendChild(tr);
+  }
+  if (!segments.length) {
+    resBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--grey); padding:14px;">Add appliances above to size the run.</td></tr>';
+  }
+}
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  segments.push({ name: 'Appliance', btu: 50000, preset: 'Custom' });
+  renderSegs(); recompute();
+});
+document.getElementById('seedBtn').addEventListener('click', () => {
+  segments = [
+    { name: 'Water heater', btu: 40000, preset: 'Water heater (40 gal)' },
+    { name: 'Range', btu: 65000, preset: 'Range / cooktop' },
+    { name: 'Dryer', btu: 35000, preset: 'Clothes dryer' },
+    { name: 'Furnace', btu: 100000, preset: 'Furnace (100k)' }
+  ];
+  renderSegs(); recompute();
+});
+
+['L','hv','sg','material','inlet'].forEach(id => document.getElementById(id).addEventListener('input', recompute));
+['material','inlet'].forEach(id => document.getElementById(id).addEventListener('change', recompute));
+
+// Seed with example
+document.getElementById('seedBtn').click();
+</script>
+
+</body>
+</html>
