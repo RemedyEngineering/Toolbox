@@ -33,6 +33,23 @@
 
   var DOMAIN_RE     = /^[^@\s]+@remedyeng\.com$/i;
   var EMAIL_FOR_SIGNIN = 'remedy.auth.emailForSignIn';
+  var SESSION_KEY   = 'remedy.auth.session';   // local "signed-in" hint for instant reveal
+
+  // ---- Invited outside guests ------------------------------------------------
+  // Staff (@remedyeng.com) are always allowed and get cross-device cloud sync.
+  // To invite a specific outside person, add their email (lowercase) here and
+  // redeploy — that's the only change needed. Guests can use the tools with
+  // settings saved locally on their device; they do NOT touch your database, so
+  // your staff data (and the Firestore rules) stay untouched.
+  var GUEST_ALLOWLIST = [
+    // 'client@example.com',
+    // 'contractor@partnerfirm.com',
+  ];
+  function isStaff(email)   { return DOMAIN_RE.test((email || '').trim().toLowerCase()); }
+  function isAllowed(email) {
+    email = (email || '').trim().toLowerCase();
+    return isStaff(email) || GUEST_ALLOWLIST.indexOf(email) >= 0;
+  }
 
   // Keys that sync across devices (exact matches + prefixes).
   var SYNC_EXACT = [
@@ -57,7 +74,7 @@
   var rawSet    = localStorage.setItem.bind(localStorage);
   var rawRemove = localStorage.removeItem.bind(localStorage);
 
-  var state = { user: null, db: null, ready: false, applyingRemote: false, dirty: {}, pushTimer: null };
+  var state = { user: null, staff: false, db: null, ready: false, applyingRemote: false, dirty: {}, pushTimer: null };
 
   /* ================= UI: loading + sign-in overlay ================= */
   function el(tag, css, html) {
@@ -94,6 +111,7 @@
     overlay = null;
   }
   function reveal() { document.documentElement.className = document.documentElement.className.replace(/\brmd-auth-pending\b/, '').trim(); }
+  function gate()   { if (document.documentElement.className.indexOf('rmd-auth-pending') < 0) document.documentElement.className += ' rmd-auth-pending'; }
 
   function showSignIn(errMsg) {
     shell(eyebrow() +
@@ -110,7 +128,7 @@
     setTimeout(function () { try { email.focus(); } catch (e) {} }, 30);
     function submit() {
       var em = (email.value || '').trim().toLowerCase();
-      if (!DOMAIN_RE.test(em)) { err.textContent = 'Please use your @remedyeng.com email address.'; email.focus(); return; }
+      if (!isAllowed(em)) { err.textContent = 'That email isn’t on the access list for this toolbox.'; email.focus(); return; }
       send.disabled = true; send.textContent = 'Sending…';
       var acs = { url: window.location.href, handleCodeInApp: true };
       firebase.auth().sendSignInLinkToEmail(em, acs).then(function () {
@@ -235,16 +253,16 @@
   /* ================= Wrap localStorage writers ================= */
   localStorage.setItem = function (k, v) {
     rawSet(k, v);
-    if (!state.applyingRemote && state.user && isSynced(k)) { state.dirty[k] = String(v); schedulePush(); }
+    if (!state.applyingRemote && state.user && state.staff && isSynced(k)) { state.dirty[k] = String(v); schedulePush(); }
   };
   localStorage.removeItem = function (k) {
     rawRemove(k);
-    if (!state.applyingRemote && state.user && isSynced(k)) { state.dirty[k] = null; schedulePush(); }
+    if (!state.applyingRemote && state.user && state.staff && isSynced(k)) { state.dirty[k] = null; schedulePush(); }
   };
 
   /* ================= Boot ================= */
   window.RemedyAuth = {
-    signOut: function () { try { firebase.auth().signOut(); } catch (e) {} location.reload(); },
+    signOut: function () { try { rawRemove(SESSION_KEY); } catch (e) {} try { firebase.auth().signOut(); } catch (e) {} location.reload(); },
     currentEmail: function () { return state.user ? state.user.email : null; }
   };
 
@@ -261,20 +279,28 @@
   }
 
   function onUser(user) {
-    if (!user) { showSignIn(); return; }
+    if (!user) { try { rawRemove(SESSION_KEY); } catch (e) {} gate(); showSignIn(); return; }
     var email = (user.email || '').toLowerCase();
-    if (!DOMAIN_RE.test(email) || !user.emailVerified) {
+    if (!isAllowed(email) || !user.emailVerified) {
       firebase.auth().signOut();
-      showSignIn('That address isn’t a verified @remedyeng.com account.');
+      try { rawRemove(SESSION_KEY); } catch (e) {}
+      gate(); showSignIn('That email isn’t on the access list. Ask a Remedy admin to add you.');
       return;
     }
     state.user = user;
-    state.db = firebase.firestore();
+    state.staff = isStaff(email);
+    // Remember we're signed in so the NEXT page reveals instantly (see the inline
+    // snippet in each page's <head>) without waiting for Firebase to re-check.
+    try { rawSet(SESSION_KEY, email); } catch (e) {}
     // Show the page IMMEDIATELY from the locally-cached data — navigating between
-    // tools should never wait on the network. Then sync quietly in the background;
-    // any genuinely newer data from another device is applied live via storage events.
+    // tools should never wait on the network.
     removeOverlay(); reveal();
-    if (shouldPull()) { pull().catch(function () {}); }
+    // Cloud sync is staff-only; invited guests use the tools with settings saved
+    // locally on their own device (they never touch the database).
+    if (state.staff) {
+      state.db = firebase.firestore();
+      if (shouldPull()) { pull().catch(function () {}); }
+    }
   }
 
   function start() {
@@ -283,14 +309,16 @@
       return;
     }
     try { firebase.initializeApp(firebaseConfig); } catch (e) { /* already initialised */ }
-    showLoading();
+    // Only show the loading screen when the page is actually gated (no known
+    // session). Returning signed-in users already see their content — no overlay.
+    if (document.documentElement.className.indexOf('rmd-auth-pending') >= 0) showLoading();
 
     // Completing a magic-link click?
     try {
       if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
         var em = '';
         try { em = localStorage.getItem(EMAIL_FOR_SIGNIN) || ''; } catch (e) {}
-        if (!em) { em = window.prompt('Confirm your @remedyeng.com email to finish signing in:') || ''; }
+        if (!em) { em = window.prompt('Confirm your email to finish signing in:') || ''; }
         firebase.auth().signInWithEmailLink(em.trim().toLowerCase(), window.location.href).then(function () {
           try { rawRemove(EMAIL_FOR_SIGNIN); } catch (e) {}
           // strip the link params from the URL

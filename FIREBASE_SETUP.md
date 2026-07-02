@@ -141,6 +141,35 @@ achievements. First device to sign in seeds the cloud; after that, settings foll
 and achievements **merge** (you never lose one earned on another device). Tool working
 files (Scratchpad, Schedule Builder drafts) stay local for now — easy to add later.
 
+## Inviting an outside guest (V1.3.2)
+
+You can let specific non-`@remedyeng.com` people in without touching Firebase at all:
+
+1. Open **`shared/auth.js`** and find the `GUEST_ALLOWLIST` near the top.
+2. Add their email (lowercase), e.g.:
+   ```js
+   var GUEST_ALLOWLIST = [
+     'client@acme.com',
+     'jsmith@partnerfirm.com',
+   ];
+   ```
+3. Save and **redeploy**. That's it — no Firestore rules change needed.
+
+**How guests differ from staff:**
+- **Staff** (`@remedyeng.com`): full experience + cross-device cloud sync.
+- **Guests** (allow-listed): sign in with a magic link and use every tool, but their
+  settings save **locally on their own device** (no cloud sync). They never touch your
+  database, so your staff data and security rules stay exactly as they are.
+
+**To remove a guest:** delete their line and redeploy. (Optionally also delete their
+account under Firebase → Authentication → Users.)
+
+> Note: the guest list is checked in the browser, so like the old gate it's a soft
+> control for *guests* (a determined person could bypass the JS). Your **staff data is
+> still hard-protected** by the server-side Firestore rules. If you'd rather have guests
+> server-enforced too (and get cloud sync), tell me — I'd add their emails to the
+> Firestore rules as well.
+
 ## Rollback (if you ever need the simple gate back)
 `shared/gate.js` is still in the package. To revert, in each page's `<head>` swap the
 Firebase + `auth.js` block back to a single `<script src="shared/gate.js?v=1"></script>`
