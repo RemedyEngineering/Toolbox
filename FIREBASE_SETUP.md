@@ -100,3 +100,48 @@ const firebaseConfig = {
 Spark (free) covers ~50K reads / 20K writes per day and plenty of auth — a few
 dozen staff won't get close. Expected ongoing cost: **$0/month**. The only upkeep
 is the Firebase console you now own (e.g. disable a leaver's account there).
+
+---
+
+# ✅ It's now built in — how to finish & test (V1.3.0)
+
+The real login + cross-device sync is **already wired into the toolbox**. Your
+`firebaseConfig` is embedded in `shared/auth.js`, and every page now loads Firebase
++ the sign-in gate (the old password gate, `shared/gate.js`, is left in place but no
+longer loaded — kept only as a fallback, see Rollback below).
+
+**Before it works, make sure you finished Steps 2–5 above in the Firebase console:**
+- [ ] Step 2 — Email link (passwordless) sign-in is **enabled**
+- [ ] Step 3 — your GitHub Pages domain (`your-username.github.io`) is in **Authorized domains**
+- [ ] Step 4 — Firestore database **created**
+- [ ] Step 5 — the security **rules published**
+
+## ⚠️ Important behavior change
+Because sign-in is now verified by Google's servers, the toolbox **only runs on the
+live, authorized domain** (your `github.io` site, or `localhost` via a local web
+server). **Double-clicking the HTML files to open them from disk (`file://`) will no
+longer work** — the sign-in can't complete there. It also needs an internet
+connection (it was fully offline before). For a hosted staff tool this is normal, but
+if anyone relied on local copies, point them at the live URL instead.
+
+## Test it (2 minutes, on the deployed site)
+1. Deploy the new build to GitHub Pages and open `https://your-username.github.io/<repo>/`.
+2. You'll get the **Staff sign-in** screen. Enter your `@remedyeng.com` email →
+   **Email me a sign-in link**.
+3. Open the email on the **same device/browser**, click the link — it returns you to
+   the site and you're in. (Non-`@remedyeng.com` addresses are refused.)
+4. Change something that syncs — e.g. switch to Dark theme, or favorite a tool.
+5. **On a second device** (or a different browser), open the site and sign in with the
+   same email. Your name, theme, favorites, and achievements should already be there.
+6. To sign out (e.g. shared computer): **Profile page → About → Sign out**.
+
+## What syncs
+Name, email, avatar, theme (incl. custom colors), favorited tools, tile order, and
+achievements. First device to sign in seeds the cloud; after that, settings follow you,
+and achievements **merge** (you never lose one earned on another device). Tool working
+files (Scratchpad, Schedule Builder drafts) stay local for now — easy to add later.
+
+## Rollback (if you ever need the simple gate back)
+`shared/gate.js` is still in the package. To revert, in each page's `<head>` swap the
+Firebase + `auth.js` block back to a single `<script src="shared/gate.js?v=1"></script>`
+(SubTools use `../shared/`). Tell me and I can do that in one pass.

@@ -41,29 +41,19 @@ VXX.YY.ZZ
 
 Bump that one constant when you cut a release.
 
-## Staff access gate
+## Staff access + cross-device sync (Firebase)
 
-Every page loads `shared/gate.js`, which shows a sign-in overlay before the tools
-can be used. A visitor must enter:
+Every page loads Firebase + **`shared/auth.js`**, which shows a real **magic-link
+sign-in** before the tools can be used: a person enters their `@remedyeng.com` email,
+gets a one-time link, and clicks it. Sign-in is verified by Google's servers (no
+bypass), and each person's profile, theme, favorites, and achievements sync across
+their devices via Firestore.
 
-- an email ending in **`@remedyeng.com`**, and
-- the shared team password.
-
-Once they pass, the browser is remembered (via `localStorage`) so each person only
-signs in **once per device**.
-
-> ⚠️ **This is a deterrent, not real security.** Because the site is fully static,
-> the check runs in the browser. Someone technical can read the page source, disable
-> JavaScript, or clear the stored flag to bypass it. The password is stored as a hash
-> (not plain text) so it isn't handed out in "View Source", but that only stops casual
-> snooping. If you need genuine protection for sensitive content, host it behind real
-> authentication (a server login, Cloudflare Access, or a private site) instead of — or
-> in addition to — this gate.
-
-**To change the password or domain**, edit the constants at the top of `shared/gate.js`:
-- Domain: `DOMAIN_RE`.
-- Password: replace `PWHASH` with the djb2 hash of the new password (the file explains how).
-- To force everyone to sign in again after a change, bump `KEY` (`remedy.gate.v1` → `v2`).
+- **Only runs on the live authorized domain** (your `github.io` site, or `localhost`
+  via a local server) — not from `file://`. Requires internet.
+- To finish setup / test / change the password model, see **`FIREBASE_SETUP.md`**.
+- The old static password gate, `shared/gate.js`, is kept as a **rollback** only (not
+  loaded). See the Rollback section in `FIREBASE_SETUP.md`.
 
 ## Mobile / phone layout
 
