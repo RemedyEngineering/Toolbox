@@ -1,11 +1,11 @@
 /* ============================================================
    Remedy Toolbox — Header + Tab nav + Greeting (SHARED)
-   Loaded by every page via:  <script src="shared/header.js?v=1"></script>
-   (SubTools use ../shared/header.js?v=1)
+   Loaded by every page via:  <script src="shared/header.js?v=2"></script>
+   (SubTools use ../shared/header.js?v=2)
 
    Each page sets, BEFORE this script:
-     <script>window.REMEDY_PAGE = { eyebrow:'Remedy Engineering · HVAC Tool',
-                                    title:'Duct Sizing', active:'tools' };</script>
+      <script>window.REMEDY_PAGE = { eyebrow:'Remedy Engineering · HVAC Tool',
+                                     title:'Duct Sizing', active:'tools' };</script>
    Then either place <div id="remedy-header"></div> where the header should go,
    or it is prepended to <body>.
 
@@ -33,10 +33,14 @@
   var title   = cfg.title   || 'Remedy Engineering';
   var active  = cfg.active  || '';
 
+  /**
+   * Escape HTML special characters to prevent XSS.
+   * @param {string} s - Input string (null/undefined treated as '')
+   * @returns {string} Escaped string safe for innerHTML
+   */
   function esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
-    });
+    var map = { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' };
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return map[c]; });
   }
 
   function tabsHtml() {
@@ -61,7 +65,7 @@
         '</div>' +
         '<div class="greeting" id="greeting">' +
           '<span id="greet-text">Welcome.</span>' +
-          '<button class="pencil-btn" id="greet-edit" title="Edit profile" aria-label="Edit profile">&#9998;</button>' +
+          '<button class="pencil-btn" id="greet-edit" type="button" title="Edit profile" aria-label="Edit profile">&#9998;</button>' +
         '</div>' +
       '</div>' +
       '<div class="accent-stripes" aria-hidden="true">' +
@@ -79,6 +83,11 @@
     el.innerHTML = n ? 'Welcome, <strong>' + esc(n) + '</strong>.' : 'Welcome.';
   }
 
+  function onProfileEditClick() { window.location.href = PROFILE; }
+  function onStorageChange(e) {
+    if (e && e.key === 'remedy.userName.v1') paintGreeting();
+  }
+
   function mount() {
     var holder = document.getElementById('remedy-header');
     var host = document.createElement('div');
@@ -92,10 +101,8 @@
     }
     paintGreeting();
     var pencil = document.getElementById('greet-edit');
-    if (pencil) pencil.addEventListener('click', function () { window.location.href = PROFILE; });
-    window.addEventListener('storage', function (e) {
-      if (e && e.key === 'remedy.userName.v1') paintGreeting();
-    });
+    if (pencil) pencil.addEventListener('click', onProfileEditClick);
+    window.addEventListener('storage', onStorageChange);
   }
 
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', mount); }
