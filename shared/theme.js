@@ -1,8 +1,8 @@
 /* ============================================================
    Remedy Toolbox — Theme engine (SHARED, single source)
    Loaded EARLY in every page's <head> via:
-       <script src="shared/theme.js?v=1"></script>      (root pages)
-       <script src="../shared/theme.js?v=1"></script>   (SubTools)
+       <script src="shared/theme.js?v=3"></script>      (root pages)
+       <script src="../shared/theme.js?v=3"></script>   (SubTools)
    It must load in <head> (before the body paints) so the saved
    theme is applied with no flash of the wrong colours.
 
@@ -102,9 +102,18 @@
   var DEFAULTS = {};
   FIELDS.forEach(function (f) { DEFAULTS[f.key] = f.def; });
 
+  /**
+   * Read theme state from localStorage.
+   * @returns {Object} Parsed theme object, or empty object on error
+   */
   function read() {
     try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; }
   }
+
+  /**
+   * Write theme state to localStorage.
+   * @param {Object} o - Theme object to persist
+   */
   function write(o) {
     try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) {}
   }
@@ -154,35 +163,18 @@
       // let native form controls / scrollbars match the theme
       '[data-theme="dark"]{color-scheme:dark;}' +
       '[data-theme="light"],[data-theme="custom"]{color-scheme:light;}' +
-
-      // ---- Dark-mode readability fixes -------------------------------------
-      // A handful of panels hard-code a pale background (e.g. #FFFBF0) that
-      // never flips, so in dark mode themed text landed on a near-white box.
-      // Re-point those backgrounds at tokens that DO flip. Scoped to
-      // [data-theme="dark"] + the exact selector so light/custom stay pristine
-      // and these always win on specificity over the page's own rule.
-      // Info / note / warning panels -> dark input-fill surface.
+      // Dark-mode readability fixes: remap hard-coded pale backgrounds to theme tokens
       '[data-theme="dark"] .note,[data-theme="dark"] .info-note,[data-theme="dark"] .warn-box{background:var(--cream);}' +
-      // Neutral "idle"/placeholder chips -> elevated dark surface.
       '[data-theme="dark"] .verdict.idle,[data-theme="dark"] .train-link.placeholder .train-tag{background:var(--charcoal-2);color:var(--ink-2);}' +
-      // Fail / error banners -> dark warm surface (text is --bad/--red, now light).
-      '[data-theme="dark"] .status.bad,[data-theme="dark"] .result-banner.fail,[data-theme="dark"] .pick-result.bad,[data-theme="dark"] .headline.err,[data-theme="dark"] .verdict.fail,[data-theme="dark"] table.results tr.bad td{background:var(--pale-or);}' +
-      // Read-only computed table cells -> dark pale surfaces (supply=green, return=orange).
+      '[data-theme="dark"] .status.bad,[data-theme="dark"] .result-banner.fail,[data-theme="dark"] .pick-result.bad,[data-theme="dark"] .headline.err,[data-theme="dark"] .verdict.fail{background:var(--pale-or);}' +
       '[data-theme="dark"] table.comp td.ro,[data-theme="dark"] table.loop-table td.ro.sup{background:var(--pale-lime);}' +
       '[data-theme="dark"] table.loop-table td.ro.ret{background:var(--pale-or);}' +
-      // Offline tile label: white on light-grey -> dark ink on light-grey.
       '[data-theme="dark"] .tile.offline .tile-head span:last-child{color:var(--charcoal);}' +
-      // Green (lime) filled action buttons read poorly with white text on dark
-      // mode\'s lighter green -> use dark ink instead.
       '[data-theme="dark"] #remedy-fb-modal .fb-foot .fb-send{color:#14161a;}' +
       '[data-theme="dark"] .doc-tag,[data-theme="dark"] .btn.lime:hover,[data-theme="dark"] .btn-export,[data-theme="dark"] .chip.chip-const:hover{color:#14161a;}' +
-      // Warn panels + warm hover states -> dark warm surface.
-      '[data-theme="dark"] .headline.warn,[data-theme="dark"] .pick-result.warn,[data-theme="dark"] .res-cell.warn,[data-theme="dark"] .copilot-ask:hover,[data-theme="dark"] .drop-item-egg:hover,[data-theme="dark"] .loop-table th.group-ret{background:var(--pale-or);}' +
-      // Green table group header -> dark green surface.
+      '[data-theme="dark"] .headline.warn,[data-theme="dark"] .pick-result.warn,[data-theme="dark"] .res-cell.warn,[data-theme="dark"] .copilot-ask:hover,[data-theme="dark"] .drop-item-egg:hover{background:var(--pale-or);}' +
       '[data-theme="dark"] .loop-table th.group-sup{background:var(--pale-lime);}' +
-      // Error result boxes (text is --red, now light) -> dark warm surface.
       '[data-theme="dark"] .widget.type-calc .w-result.error,[data-theme="dark"] .widget.type-var .w-result.error{background:var(--pale-or);}' +
-      // Subtle near-white section tints / row hovers -> elevated dark surface.
       '[data-theme="dark"] .sys-section,[data-theme="dark"] .add-row-bar,[data-theme="dark"] .sch-item:hover,[data-theme="dark"] .sdv tbody tr:hover,[data-theme="dark"] .doc-row:hover{background:var(--charcoal-2);}';
     var st = document.createElement('style');
     st.id = 'remedy-theme-css';
