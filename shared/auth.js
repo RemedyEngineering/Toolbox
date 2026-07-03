@@ -2,12 +2,12 @@
    Remedy Toolbox — Firebase auth + cross-device sync (SHARED)
    Loaded EARLY in every page's <head>, AFTER the Firebase compat
    SDKs and after theme.js:
-     <script>document.documentElement.className+=' rmd-auth-pending';</script>
-     <style>html.rmd-auth-pending body{visibility:hidden!important}</style>
-     <script defer src=".../firebase-app-compat.js"></script>
-     <script defer src=".../firebase-auth-compat.js"></script>
-     <script defer src=".../firebase-firestore-compat.js"></script>
-     <script defer src="shared/auth.js?v=1"></script>
+      <script>document.documentElement.className+=' rmd-auth-pending';</script>
+      <style>html.rmd-auth-pending body{visibility:hidden!important}</style>
+      <script defer src=".../firebase-app-compat.js"></script>
+      <script defer src=".../firebase-auth-compat.js"></script>
+      <script defer src=".../firebase-firestore-compat.js"></script>
+      <script defer src="shared/auth.js?v=5"></script>
 
    Replaces the old client-side gate.js with real, server-verified
    sign-in (passwordless "magic link"), restricted to @remedyeng.com,
@@ -30,6 +30,8 @@
     appId: "1:693142943366:web:91abd92f17b3db4da9c307",
     measurementId: "G-B16DV2C3CK"
   };
+  // Firebase SDK version: 10.12.0 (locked as of 2026-07-03)
+  // Check compatibility with new releases before upgrading.
 
   var DOMAIN_RE     = /^[^@\s]+@remedyeng\.com$/i;
   var EMAIL_FOR_SIGNIN = 'remedy.auth.emailForSignIn';
@@ -59,7 +61,8 @@
   ];
   var SYNC_PREFIX = ['remedy.ach.'];
   var AVATAR_KEY  = 'remedy.profilePic.v1';
-  var AVATAR_MAX  = 700000;      // ~700 KB guard (Firestore doc limit is 1 MB)
+  // Avatar size guard: ~700 KB (Firestore document limit is 1 MB, leave 300 KB headroom)
+  var AVATAR_MAX  = 700000;
 
   function isSynced(k) {
     if (!k) return false;
@@ -128,7 +131,7 @@
     setTimeout(function () { try { email.focus(); } catch (e) {} }, 30);
     function submit() {
       var em = (email.value || '').trim().toLowerCase();
-      if (!isAllowed(em)) { err.textContent = 'That email isn’t on the access list for this toolbox.'; email.focus(); return; }
+      if (!isAllowed(em)) { err.textContent = 'That email isn\'t on the access list for this toolbox.'; email.focus(); return; }
       send.disabled = true; send.textContent = 'Sending…';
       var acs = { url: window.location.href, handleCodeInApp: true };
       firebase.auth().sendSignInLinkToEmail(em, acs).then(function () {
@@ -139,7 +142,9 @@
           '<p style="margin:12px 0 0;font-size:12px;color:#8c8c8c;line-height:1.6;">Open it on this device to finish signing in. You can close this tab — the link brings you back.</p>');
       }).catch(function (e) {
         send.disabled = false; send.textContent = 'Email me a sign-in link';
-        err.textContent = 'Could not send the link: ' + (e && e.code ? e.code : 'try again') + '.';
+        var errCode = (e && e.code) ? e.code : 'unknown error';
+        console.warn('[auth] sendSignInLinkToEmail failed:', errCode, e);
+        err.textContent = 'Could not send the link: ' + errCode + '.';
       });
     }
     send.addEventListener('click', submit);
@@ -217,6 +222,7 @@
   }
   function schedulePush() {
     if (state.pushTimer) return;
+    // Throttle pushes to 800ms apart to avoid Firestore rate limits on rapid changes
     state.pushTimer = setTimeout(function () {
       state.pushTimer = null;
       if (!state.user || !state.db) return;
@@ -235,7 +241,9 @@
       state.db.collection('users').doc(state.user.uid).set(
         // set(merge) so it works whether or not the doc/fields exist
         rebuild(upd), { merge: true }
-      ).catch(function () {});
+      ).catch(function (e) {
+        console.warn('[auth] Firestore push failed:', e && e.message);
+      });
     }, 800);
   }
   // Firestore set(merge) needs nested maps, not dotted paths; convert "keys.x" -> {keys:{x:..}}
@@ -262,17 +270,22 @@
 
   /* ================= Boot ================= */
   window.RemedyAuth = {
-    signOut: function () { try { rawRemove(SESSION_KEY); } catch (e) {} try { firebase.auth().signOut(); } catch (e) {} location.reload(); },
+    signOut: function () {
+      try { rawRemove(SESSION_KEY); } catch (e) {}
+      try { firebase.auth().signOut(); } catch (e) {}
+      location.reload();
+    },
     currentEmail: function () { return state.user ? state.user.email : null; }
   };
 
   // Skip the background pull if we already synced very recently this session,
   // so rapid navigation between tools doesn't hammer Firestore.
+  // Throttle window: 15 seconds (reduces DB calls on quick tool switches)
   function shouldPull() {
     try {
       var last = parseFloat(sessionStorage.getItem('remedy.auth.lastPull') || '0');
       var now = Date.now();
-      if (now - last < 15000) return false;
+      if (now - last < 15000) return false;  // Skip if pulled in last 15s
       sessionStorage.setItem('remedy.auth.lastPull', String(now));
       return true;
     } catch (e) { return true; }
@@ -284,7 +297,7 @@
     if (!isAllowed(email) || !user.emailVerified) {
       firebase.auth().signOut();
       try { rawRemove(SESSION_KEY); } catch (e) {}
-      gate(); showSignIn('That email isn’t on the access list. Ask a Remedy admin to add you.');
+      gate(); showSignIn('That email isn\'t on the access list. Ask a Remedy admin to add you.');
       return;
     }
     state.user = user;
@@ -299,7 +312,9 @@
     // locally on their own device (they never touch the database).
     if (state.staff) {
       state.db = firebase.firestore();
-      if (shouldPull()) { pull().catch(function () {}); }
+      if (shouldPull()) { pull().catch(function (e) {
+        console.warn('[auth] Initial pull failed:', e && e.message);
+      }); }
     }
   }
 
@@ -324,6 +339,7 @@
           // strip the link params from the URL
           try { history.replaceState(null, '', window.location.pathname + window.location.hash); } catch (e) {}
         }).catch(function (e) {
+          console.warn('[auth] signInWithEmailLink failed:', e && e.code, e);
           showSignIn('That sign-in link was invalid or expired. Request a new one.');
         });
       }
