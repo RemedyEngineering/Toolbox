@@ -19,7 +19,7 @@
     --cream:#FFF4E0; --white:#FFFFFF; --grey:#595959; --grey-l:#6e6e6e;
     --border:#BFBFBF; --bg:#F4F4F4;
   }
-  * { box-sizing: border-box; }
+  
   html { margin: 0; padding: 0; scrollbar-gutter: stable; }
   body { margin: 0; padding: 0; }
   body {
@@ -38,10 +38,9 @@
     border-bottom: 1px solid var(--border, var(--border));
     gap: 18px; flex-wrap: wrap;
   }
-  .header-left { display: flex; align-items: center; gap: 18px; }
-  .header img { height: 52px; display: block; }
+
   .header-divider { width: 1px; height: 44px; background: var(--border, var(--border)); }
-  .header-titles { line-height: 1.1; }
+  
   .header .eyebrow {
     font-size: 11px; font-weight: bold; letter-spacing: 2px;
     text-transform: uppercase; color: var(--orange-d, var(--orange-d)); margin-bottom: 4px;
@@ -63,12 +62,12 @@
     color: var(--grey-l, var(--grey-l));
     opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
   }
-  .greeting:hover .pencil-btn { opacity: 1; }
+  
   .greeting .pencil-btn:hover { color: var(--orange, var(--orange)); }
 
   /* ======== ACCENT STRIPES (canonical) ======== */
   .accent-stripes { display: flex; height: 5px; }
-  .accent-stripes span { flex: 1; }
+  
   .accent-stripes .s-charcoal { background: var(--charcoal, var(--charcoal)); }
   .accent-stripes .s-orange   { background: var(--orange, var(--orange)); }
   .accent-stripes .s-lime     { background: var(--lime-d, var(--lime-d)); }
@@ -79,16 +78,7 @@
     display: flex; flex-wrap: wrap; align-items: stretch;
     padding: 0 12px;
   }
-  .tab {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 14px 22px;
-    color: rgba(255,244,224,0.72);
-    text-decoration: none;
-    font-size: 12px; font-weight: bold;
-    letter-spacing: 2px; text-transform: uppercase;
-    border-bottom: 3px solid transparent;
-    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
-  }
+  
   .tab:hover { color: var(--on-dark); background: var(--charcoal-2, var(--charcoal-2)); }
   .tab.is-active {
     color: var(--on-dark);
@@ -97,20 +87,9 @@
   }
   .tab .tab-dot { width: 7px; height: 7px; background: var(--lime, var(--lime)); display: inline-block; }
   .tab.is-active .tab-dot { background: var(--orange, var(--orange)); }
-  @media (max-width: 800px) {
-    .tab { padding: 12px 14px; font-size: 11px; letter-spacing: 1.5px; }
-  }
-  @media (max-width: 640px) {
-    .header { padding: 10px 16px; gap: 12px; }
-    .header img { height: 40px; }
-    .header-divider { height: 36px; }
-    .header h1 { font-size: 18px; }
-    .header .eyebrow { font-size: 10px; letter-spacing: 1.5px; }
-  }
-  .accent-bar { height: 4px; background: var(--orange); }
 
 .back-link:hover { background: var(--orange); color: var(--on-dark); }
-  .accent-bar { height: 4px; background: var(--orange); }
+  
   .accent-strip {
     background: var(--charcoal); color: var(--on-dark);
     font-style: italic; font-weight: bold; font-size: 13px; padding: 6px 24px;
@@ -309,17 +288,15 @@
     transition: opacity 0.25s ease, transform 0.25s ease;
     z-index: 9999;
   }
-  .ach-toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .ach-toast-emoji { font-size: 28px; line-height: 1; flex-shrink: 0; }
-  .ach-toast-text { display: flex; flex-direction: column; gap: 2px; }
+
   .ach-toast-label {
     font-size: 9px; font-weight: bold; letter-spacing: 1.5px;
     text-transform: uppercase; color: var(--orange, #e8862a);
   }
-  .ach-toast-title { font-size: 14px; font-weight: bold; }
-  .ach-toast-desc { font-size: 11px; color: rgba(255,244,224,0.7); }
+
   .ach-toast-reward { font-size: 10px; color: var(--orange-l, var(--orange-l)); font-style: italic; margin-top: 3px; }
 </style>
+  <link rel="stylesheet" href="../shared/remedy-core.css?v=2">
   <link rel="stylesheet" href="../shared/mobile.css?v=1">
 </head>
 <body>
