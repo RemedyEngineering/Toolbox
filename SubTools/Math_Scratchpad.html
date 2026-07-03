@@ -20,7 +20,7 @@
     --border:#BFBFBF; --bg:#F4F4F4; --red:#B00000;
     --paper:#FFFFFF; --grid:#D6DDE3;
   }
-  * { box-sizing: border-box; }
+  
   html, body { margin:0; padding:0; }
   body {
     font-family: Calibri,"Segoe UI",Tahoma,sans-serif;
@@ -35,55 +35,25 @@
     border-bottom: 1px solid var(--border);
     gap: 18px; flex-wrap: wrap;
   }
-  .header-left { display: flex; align-items: center; gap: 18px; }
-  .header img { height: 52px; display: block; }
-  .header-divider { width: 1px; height: 44px; background: var(--border); }
-  .header-titles { line-height: 1.1; }
-  .header .eyebrow {
-    font-size: 11px; font-weight: bold; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--orange-d); margin-bottom: 4px;
-  }
+
   .header h1 {
     margin: 0; font-size: 22px; font-weight: bold;
     color: var(--ink); letter-spacing: 0.3px;
   }
   .greeting { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--grey); }
   .greeting strong { color: var(--ink); font-weight: 600; }
-  .greeting .pencil-btn {
-    background: transparent; border: none; padding: 2px 4px; cursor: pointer;
-    font-size: 14px; line-height: 1; color: var(--grey-l);
-    opacity: 0; transition: opacity 0.15s ease, color 0.15s ease;
-  }
-  .greeting:hover .pencil-btn { opacity: 1; }
-  .greeting .pencil-btn:hover { color: var(--orange); }
 
   .accent-stripes { display: flex; height: 5px; }
-  .accent-stripes span { flex: 1; }
-  .accent-stripes .s-charcoal { background: var(--charcoal); }
-  .accent-stripes .s-orange   { background: var(--orange); }
-  .accent-stripes .s-lime     { background: var(--lime-d); }
 
   .tabnav {
     background: var(--charcoal);
     display: flex; flex-wrap: wrap; align-items: stretch;
     padding: 0 12px;
   }
-  .tab {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 14px 22px;
-    color: rgba(255,244,224,0.72);
-    text-decoration: none;
-    font-size: 12px; font-weight: bold;
-    letter-spacing: 2px; text-transform: uppercase;
-    border-bottom: 3px solid transparent;
-    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
-  }
+  
   .tab:hover { color: var(--on-dark); background: var(--charcoal-2); }
   .tab.is-active { color: var(--on-dark); border-bottom-color: var(--orange); background: var(--charcoal-2); }
-  .tab .tab-dot { width: 7px; height: 7px; background: var(--lime); display: inline-block; }
-  .tab.is-active .tab-dot { background: var(--orange); }
 
-  .accent-bar { height: 4px; background: var(--orange); }
   .accent-strip {
     background: var(--charcoal); color: var(--on-dark);
     font-style: italic; font-weight: bold; font-size: 13px; padding: 6px 24px;
@@ -584,6 +554,7 @@
   .paper.exporting .pages-wrap { overflow: visible; max-height: none; }
   .paper.exporting { max-height: none; }
 </style>
+  <link rel="stylesheet" href="../shared/remedy-core.css?v=2">
   <link rel="stylesheet" href="../shared/mobile.css?v=1">
 </head>
 <body>
